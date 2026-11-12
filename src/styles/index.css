@@ -42,6 +42,36 @@
 @keyframes float-y { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
 @keyframes shimmer { from { background-position: -200% 0; } to { background-position: 200% 0; } }
 
+/* ---- Ported Magic UI / Aceternity primitives ---- */
+/* ring mask: paints only the element's border box minus its padding box */
+.border-beam, .glow-effect::after {
+  -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0) border-box;
+  -webkit-mask-composite: xor; mask-composite: exclude;
+}
+.border-beam { position: absolute; inset: 0; pointer-events: none; border-radius: inherit; border: var(--bw) solid transparent; }
+.border-beam::after {
+  content: ""; position: absolute; width: calc(var(--size) * 1px); aspect-ratio: 1;
+  background: linear-gradient(to left, var(--color-from), var(--color-to), transparent);
+  offset-anchor: 90% 50%; offset-path: rect(0 auto auto 0 round calc(var(--size) * 1px));
+  animation: border-beam var(--duration) linear infinite; animation-delay: var(--delay);
+}
+@keyframes border-beam { to { offset-distance: 100%; } }
+
+.orbit { animation: orbit var(--duration) linear infinite; will-change: transform; }
+@keyframes orbit {
+  from { transform: rotate(calc(var(--angle) * 1deg)) translateY(calc(var(--radius) * 1px)) rotate(calc(var(--angle) * -1deg)); }
+  to { transform: rotate(calc(var(--angle) * 1deg + 360deg)) translateY(calc(var(--radius) * 1px)) rotate(calc(var(--angle) * -1deg - 360deg)); }
+}
+
+.mq-track { animation: mq var(--duration) linear infinite; }
+@keyframes mq { to { transform: translateX(calc(-100% - var(--gap))); } }
+
+.glow-effect { opacity: var(--active); transition: opacity .4s ease; }
+.glow-effect::after {
+  content: ""; position: absolute; inset: calc(var(--glow-bw) * -1); border-radius: inherit; border: var(--glow-bw) solid transparent;
+  background: conic-gradient(from calc((var(--start) - var(--spread)) * 1deg), transparent 0deg, #5AA5FF calc(var(--spread) * .7deg), #0361DB calc(var(--spread) * 1.3deg), transparent calc(var(--spread) * 2deg)) border-box;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
 }

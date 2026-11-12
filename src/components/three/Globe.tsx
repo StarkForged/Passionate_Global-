@@ -1,22 +1,29 @@
 /**
- * Hero planet — WebGL (react-three-fiber).
- * Dotted land on a dark sphere, fresnel rim + atmosphere glow, animated
- * connection arcs from the Ahmedabad delivery centre to every market,
- * an orbit ring with a satellite, star field and bloom.
+ * Hero planet — WebGL (react-three-fiber). Reference: ref_vid1 / ref_vid2.
+ * Crisp evenly spaced land dots on a near-black sphere, thin rim light, tight atmosphere,
+ * arcs from the Ahmedabad delivery centre to every market with travelling pulses, and
+ * 3D-anchored city labels (live local time) that fade out at the limb.
+ * `progress` (0..1, scroll through the hero) makes the planet rise and scale up ~1.3×.
  */
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { Stars } from '@react-three/drei';
+import { Html, Stars } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import geo from '@/data/geo.json';
 import { countries } from '@/data/content';
+import { formatTime, useNow } from '@/hooks/useClock';
 
 const D2R = Math.PI / 180;
 const toVec = (lat: number, lng: number, r = 1) => {
   const la = lat * D2R, lo = lng * D2R;
-  // three.js: y up; lng rotates around y. (-x so east goes right when facing +z)
   return new THREE.Vector3(r * Math.cos(la) * Math.sin(lo), r * Math.sin(la), r * Math.cos(la) * Math.cos(lo));
+};
+/** Point i of an N-point Fibonacci sphere, as [lat, lng] (matches scripts/build-geo.mjs). */
+const GA = Math.PI * (3 - Math.sqrt(5));
+const fibPoint = (i: number, n: number) => {
+  const y = 1 - (i / (n - 1)) * 2;
+  return [Math.asin(y) / D2R, (((i * GA) / D2R) % 360) - 180] as const;
 };
 
 /* ---------- shaders ---------- */
@@ -27,59 +34,99 @@ const bodyFrag = /* glsl */ `
   varying vec3 vN; varying vec3 vV;
   void main(){
     float f = 1. - max(dot(vN, vV), 0.);
-    vec3 core = vec3(0.004,0.03,0.08);
-    vec3 edge = vec3(0.07,0.30,0.85);
-    vec3 col = mix(core, edge, pow(f, 3.6));
-    col += vec3(0.55,0.80,1.0) * pow(f, 12.0) * 0.9;
+    vec3 col = vec3(0.004,0.016,0.04);                      // near-black interior
+    col += vec3(0.04,0.18,0.55) * pow(f, 10.0) * 0.8;        // soft blue falloff, kept to the edge
+    col += vec3(0.62,0.84,1.0) * pow(f, 22.0) * 1.6;         // thin bright rim
     gl_FragColor = vec4(col, 1.);
   }`;
 const atmoFrag = /* glsl */ `
   varying vec3 vN; varying vec3 vV;
   void main(){
-    float f = pow(clamp(0.62 - dot(vN, vV), 0., 1.), 3.0);
-    gl_FragColor = vec4(vec3(0.30,0.62,1.0) * f * 3.2, f);
+    float f = pow(clamp(0.5 - dot(vN, vV), 0., 1.), 4.0);
+    gl_FragColor = vec4(vec3(0.36,0.66,1.0) * f * 2.6, f);
   }`;
 const dotVert = /* glsl */ `
-  uniform float uSize; uniform float uTime; attribute float aRnd;
-  varying float vA; varying float vTw;
+  uniform float uSize;
+  varying float vA;
   void main(){
     vec4 mv = modelViewMatrix * vec4(position,1.);
     vec3 n = normalize(normalMatrix * normalize(position));
     float facing = dot(n, normalize(-mv.xyz));
-    vA = smoothstep(0.02, 0.55, facing);
-    vTw = 0.65 + 0.35 * sin(uTime * (1.2 + aRnd * 2.) + aRnd * 40.);
-    gl_PointSize = uSize * (0.75 + 0.5 * facing);
+    vA = smoothstep(0.0, 0.35, facing);
+    gl_PointSize = uSize;
     gl_Position = projectionMatrix * mv;
   }`;
 const dotFrag = /* glsl */ `
-  varying float vA; varying float vTw;
+  varying float vA;
   void main(){
-    vec2 c = gl_PointCoord - .5; float d = length(c);
+    float d = length(gl_PointCoord - .5);
     if (d > .5) discard;
-    float a = smoothstep(.5, .15, d) * vA;
-    vec3 col = mix(vec3(0.25,0.50,0.95), vec3(0.72,0.86,1.0), vA * vTw);
-    gl_FragColor = vec4(col, a * (0.45 + 0.4 * vTw));
+    float a = smoothstep(.5, .32, d) * vA;
+    gl_FragColor = vec4(mix(vec3(0.30,0.55,0.95), vec3(0.78,0.89,1.0), vA), a * 0.9);
   }`;
 const arcVert = /* glsl */ `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }`;
 const arcFrag = /* glsl */ `
   uniform float uTime; uniform float uOff; varying vec2 vUv;
   void main(){
-    float h = fract(uTime * 0.22 + uOff);
-    float head = exp(-pow((vUv.x - h) * 14., 2.));
-    float tail = smoothstep(h - 0.28, h, vUv.x) * step(vUv.x, h) * 0.6;
-    float base = 0.16;
-    float a = base + head * 1.6 + tail * 0.5;
-    vec3 col = mix(vec3(0.3,0.6,1.0), vec3(1.0), head);
-    gl_FragColor = vec4(col * (1.0 + head * 2.0), a);
+    float h = fract(uTime * 0.16 + uOff);
+    float head = exp(-pow((vUv.x - h) * 16., 2.));
+    float tail = smoothstep(h - 0.3, h, vUv.x) * step(vUv.x, h);
+    float a = 0.14 + head * 1.4 + tail * 0.3;
+    gl_FragColor = vec4(mix(vec3(0.35,0.62,1.0), vec3(1.0), head) * (1.0 + head * 1.5), a);
   }`;
 
-function Planet({ scrollRef }: { scrollRef: React.MutableRefObject<number> }) {
+type Side = 'left' | 'right' | 'up';
+type Label = { key: string; text: string; time?: string; hub?: boolean; side?: Side; pos: THREE.Vector3 };
+// Close neighbours (Dublin / London / Berlin) get their pills pushed apart so they never overlap.
+const SIDE: Record<string, Side> = { IE: 'left', GB: 'up', EU: 'right', hub: 'right' };
+const OFFSET: Record<Side, string> = { left: 'translate(-54%, -20px)', right: 'translate(54%, -20px)', up: 'translate(0, -52px)' };
+
+function Labels({ items }: { items: Label[] }) {
+  const refs = useRef<(HTMLDivElement | null)[]>([]);
+  const { camera } = useThree();
+  const tmp = useMemo(() => ({ p: new THREE.Vector3(), c: new THREE.Vector3(), n: new THREE.Vector3(), o: new THREE.Vector3(), s: new THREE.Vector3() }), []);
+  useFrame(({ scene }) => {
+    items.forEach((it, i) => {
+      const el = refs.current[i];
+      const anchor = scene.getObjectByName('lbl-' + it.key);
+      if (!el || !anchor) return;
+      anchor.getWorldPosition(tmp.p);
+      anchor.parent!.getWorldPosition(tmp.o);
+      tmp.n.copy(tmp.p).sub(tmp.o).normalize();
+      tmp.c.copy(camera.position).sub(tmp.p).normalize();
+      const f = tmp.n.dot(tmp.c);
+      // fade at the limb, near the screen edges and in the bottom band (trust marquee lives there)
+      tmp.s.copy(tmp.p).project(camera);
+      const edge = 1 - THREE.MathUtils.smoothstep(Math.abs(tmp.s.x), 0.62, 0.8);
+      const low = 1 - THREE.MathUtils.smoothstep(-tmp.s.y, 0.72, 0.8);
+      el.style.opacity = String(THREE.MathUtils.smoothstep(f, 0.1, 0.25) * edge * low);
+    });
+  });
+  return (
+    <>
+      {items.map((it, i) => (
+        <group key={it.key} position={it.pos} name={'lbl-' + it.key}>
+          <Html center zIndexRange={[5, 0]} style={{ pointerEvents: 'none' }}>
+            <div ref={(el) => (refs.current[i] = el)} style={{ opacity: 0, transform: it.side ? OFFSET[it.side] : 'translate(0, -20px)' }}>
+              <span className={`flex items-center gap-1.5 whitespace-nowrap rounded-full border px-3 py-1 text-[13px] font-medium backdrop-blur-md ${it.hub ? 'border-sky/40 bg-brand/40 text-white' : 'border-white/15 bg-[#021534]/60 text-[#DCEBFF]'}`}>
+                {it.text}
+                {it.time && <><span className="text-white/40">·</span><span className="tabular-nums text-white">{it.time}</span></>}
+              </span>
+            </div>
+          </Html>
+        </group>
+      ))}
+    </>
+  );
+}
+
+function Planet({ progress }: { progress: React.MutableRefObject<number> }) {
   const group = useRef<THREE.Group>(null!);
   const spin = useRef<THREE.Group>(null!);
-  const sat = useRef<THREE.Mesh>(null!);
   const markerRefs = useRef<THREE.Mesh[]>([]);
   const { viewport, size, gl } = useThree();
   const pointer = useRef({ x: 0, y: 0 });
+  const now = useNow(15000);
 
   useEffect(() => {
     const m = (e: PointerEvent) => { pointer.current.x = (e.clientX / innerWidth - 0.5) * 2; pointer.current.y = (e.clientY / innerHeight - 0.5) * 2; };
@@ -90,9 +137,9 @@ function Planet({ scrollRef }: { scrollRef: React.MutableRefObject<number> }) {
   const mobile = size.width < 768;
   // Planet size & placement. `horizon` = where the top of the planet sits, as a fraction of
   // the hero height measured from the bottom. Solved exactly for the perspective camera.
-  const R = mobile ? viewport.width * 1.25 : Math.max(viewport.width * 0.78, viewport.height * 1.1);
+  const R = mobile ? viewport.width * 1.3 : Math.max(viewport.width * 0.72, viewport.height * 1.05);
   const zc = -R * 0.55;
-  const horizon = mobile ? 0.2 : 0.25;
+  const horizon = mobile ? 0.21 : 0.265;
   const baseY = useMemo(() => {
     const camZ = 6, half = (35 / 2) * D2R;
     const top = Math.atan((-1 + 2 * horizon) * Math.tan(half));
@@ -102,60 +149,59 @@ function Planet({ scrollRef }: { scrollRef: React.MutableRefObject<number> }) {
   }, [R, zc, horizon]);
 
   const dots = useMemo(() => {
-    const g = geo.globe as number[];
-    const pos = new Float32Array((g.length / 2) * 3), rnd = new Float32Array(g.length / 2);
-    for (let i = 0, j = 0; i < g.length; i += 2, j++) {
-      const v = toVec(g[i], g[i + 1], 1.003);
-      pos.set([v.x, v.y, v.z], j * 3); rnd[j] = Math.random();
-    }
+    const { n, idx } = geo.globe as { n: number; idx: number[] };
+    const pos = new Float32Array(idx.length * 3);
+    let i = 0;
+    idx.forEach((d, j) => { i += d; const [la, lo] = fibPoint(i, n); const v = toVec(la, lo, 1.002); pos[j * 3] = v.x; pos[j * 3 + 1] = v.y; pos[j * 3 + 2] = v.z; });
     const geom = new THREE.BufferGeometry();
     geom.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-    geom.setAttribute('aRnd', new THREE.BufferAttribute(rnd, 1));
     return geom;
   }, []);
 
-  const dotMat = useMemo(() => new THREE.ShaderMaterial({
-    vertexShader: dotVert, fragmentShader: dotFrag, transparent: true, depthWrite: false,
-    uniforms: { uSize: { value: 2 }, uTime: { value: 0 } },
-  }), []);
-  useEffect(() => { dotMat.uniforms.uSize.value = (mobile ? 2.2 : 2.6) * Math.min(gl.getPixelRatio(), 2) * Math.min(1.25, size.width / 1440 + 0.35); }, [mobile, gl, size.width, dotMat]);
+  const dotMat = useMemo(() => new THREE.ShaderMaterial({ vertexShader: dotVert, fragmentShader: dotFrag, transparent: true, depthWrite: false, uniforms: { uSize: { value: 2 } } }), []);
+  useEffect(() => { dotMat.uniforms.uSize.value = (mobile ? 1.5 : 1.8) * Math.min(gl.getPixelRatio(), 2); }, [mobile, gl, dotMat]);
 
   const hub = countries.hub;
   const arcs = useMemo(() => countries.items.map((c, i) => {
     const a = toVec(hub.lat, hub.lng), b = toVec(c.lat, c.lng);
     const dist = a.distanceTo(b);
-    const mid = a.clone().add(b).multiplyScalar(0.5).normalize().multiplyScalar(1 + dist * 0.32);
-    const c1 = a.clone().lerp(mid, 0.6).normalize().multiplyScalar(1 + dist * 0.26);
-    const c2 = b.clone().lerp(mid, 0.6).normalize().multiplyScalar(1 + dist * 0.26);
-    const curve = new THREE.CubicBezierCurve3(a, c1, c2, b);
-    const geom = new THREE.TubeGeometry(curve, 120, 0.0032, 6, false);
+    // altitude capped so arcs hug the planet instead of climbing behind the copy
+    const lift = Math.min(0.03 + dist * 0.06, 0.12);
+    const c1 = a.clone().lerp(b, 0.25).normalize().multiplyScalar(1 + lift);
+    const c2 = a.clone().lerp(b, 0.75).normalize().multiplyScalar(1 + lift);
+    const geom = new THREE.TubeGeometry(new THREE.CubicBezierCurve3(a, c1, c2, b), 160, 0.0022, 6, false);
     const mat = new THREE.ShaderMaterial({ vertexShader: arcVert, fragmentShader: arcFrag, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, uniforms: { uTime: { value: 0 }, uOff: { value: i * 0.17 } } });
     return { geom, mat, end: b };
   }), [hub.lat, hub.lng]);
 
   const hubPos = useMemo(() => toVec(hub.lat, hub.lng, 1.004), [hub.lat, hub.lng]);
+  // mobile: only London + the delivery centre, so the thin planet band never gets crowded
+  const labels: Label[] = useMemo(() => [
+    ...countries.items.filter((c) => !mobile || c.code === 'GB').map((c) => ({ key: c.code, text: c.city, time: formatTime(c.tz, now), side: mobile ? undefined : SIDE[c.code], pos: toVec(c.lat, c.lng, 1.004) })),
+    { key: 'hub', text: `Ahmedabad · ${hub.label}`, hub: true, side: SIDE.hub, pos: hubPos },
+  ], [now, hub.label, hubPos, mobile]);
 
   useFrame((state, dt) => {
     const t = state.clock.elapsedTime;
-    dotMat.uniforms.uTime.value = t;
     arcs.forEach((a) => (a.mat.uniforms.uTime.value = t));
-    const sp = scrollRef.current; // 0..1 over the hero
-    // initial orientation: Europe/India facing the viewer, tilted so northern hemisphere sits on the horizon
-    spin.current.rotation.y += dt * (0.035 + sp * 0.12);
-    group.current.rotation.x = THREE.MathUtils.lerp(group.current.rotation.x, 0.42 + pointer.current.y * 0.05 + sp * 0.2, 0.05);
-    group.current.rotation.z = THREE.MathUtils.lerp(group.current.rotation.z, -0.08 + pointer.current.x * -0.04, 0.05);
-    group.current.position.y = baseY - sp * viewport.height * 0.18;
-    group.current.position.x = THREE.MathUtils.lerp(group.current.position.x, pointer.current.x * 0.06, 0.05);
-    if (sat.current) {
-      const a = t * 0.18;
-      sat.current.position.set(Math.cos(a) * 1.22, 0, Math.sin(a) * 1.22);
-    }
-    markerRefs.current.forEach((m, i) => { if (!m) return; const s = 1 + ((t * 0.8 + i * 0.3) % 1) * 2.4; m.scale.setScalar(s); (m.material as THREE.MeshBasicMaterial).opacity = 0.9 * (1 - ((t * 0.8 + i * 0.3) % 1)); });
+    const sp = progress.current;
+    spin.current.rotation.y += dt * 0.018;
+    group.current.rotation.x = THREE.MathUtils.lerp(group.current.rotation.x, -0.78 + pointer.current.y * 0.03 + sp * 0.12, 0.06);
+    group.current.rotation.z = THREE.MathUtils.lerp(group.current.rotation.z, -0.06 + pointer.current.x * -0.025, 0.05);
+    group.current.position.y = baseY + sp * viewport.height * 0.32;
+    group.current.position.x = THREE.MathUtils.lerp(group.current.position.x, pointer.current.x * 0.05, 0.05);
+    group.current.scale.setScalar(R * (1 + sp * 0.3));
+    markerRefs.current.forEach((m, i) => {
+      if (!m) return;
+      const k = (t * 0.6 + i * 0.3) % 1;
+      m.scale.setScalar(1 + k * 2.4); (m.material as THREE.MeshBasicMaterial).opacity = 0.8 * (1 - k);
+    });
   });
 
   return (
     <group ref={group} position={[0, baseY, zc]} scale={R}>
-      <group ref={spin} rotation={[0, -0.85, 0]}>
+      {/* initial spin: Europe ↔ India facing the viewer */}
+      <group ref={spin} rotation={[0, mobile ? -0.5 : -0.75, 0]}>
         <mesh>
           <sphereGeometry args={[1, 128, 128]} />
           <shaderMaterial vertexShader={bodyVert} fragmentShader={bodyFrag} />
@@ -165,41 +211,31 @@ function Planet({ scrollRef }: { scrollRef: React.MutableRefObject<number> }) {
           <group key={i}>
             <mesh geometry={a.geom} material={a.mat} />
             <mesh position={a.end.clone().multiplyScalar(1.004)} onUpdate={(m) => m.lookAt(a.end.clone().multiplyScalar(2))} ref={(m) => { if (m) markerRefs.current[i] = m; }}>
-              <ringGeometry args={[0.006, 0.009, 32]} />
+              <ringGeometry args={[0.005, 0.0075, 32]} />
               <meshBasicMaterial color="#9fd0ff" transparent depthWrite={false} side={THREE.DoubleSide} />
             </mesh>
             <mesh position={a.end.clone().multiplyScalar(1.004)}>
-              <sphereGeometry args={[0.0055, 12, 12]} />
+              <sphereGeometry args={[0.0045, 12, 12]} />
               <meshBasicMaterial color="#e6f3ff" toneMapped={false} />
             </mesh>
           </group>
         ))}
         <mesh position={hubPos}>
-          <sphereGeometry args={[0.009, 16, 16]} />
-          <meshBasicMaterial color={new THREE.Color(2.2, 2.6, 3)} toneMapped={false} />
+          <sphereGeometry args={[0.0075, 16, 16]} />
+          <meshBasicMaterial color={new THREE.Color(1.6, 2, 2.6)} toneMapped={false} />
         </mesh>
+        <Labels items={labels} />
       </group>
       {/* atmosphere */}
-      <mesh scale={1.045}>
+      <mesh scale={1.03}>
         <sphereGeometry args={[1, 96, 96]} />
         <shaderMaterial vertexShader={bodyVert} fragmentShader={atmoFrag} side={THREE.BackSide} transparent blending={THREE.AdditiveBlending} depthWrite={false} />
       </mesh>
-      {/* orbit ring + satellite */}
-      <group rotation={[1.25, 0.25, 0.35]}>
-        <mesh rotation={[Math.PI / 2, 0, 0]}>
-          <torusGeometry args={[1.22, 0.0011, 8, 256]} />
-          <meshBasicMaterial color="#7fb6ff" transparent opacity={0.2} />
-        </mesh>
-        <mesh ref={sat}>
-          <sphereGeometry args={[0.008, 16, 16]} />
-          <meshBasicMaterial color={new THREE.Color(3, 3.4, 4)} toneMapped={false} />
-        </mesh>
-      </group>
     </group>
   );
 }
 
-export default function Globe({ scrollRef }: { scrollRef: React.MutableRefObject<number> }) {
+export default function Globe({ progress }: { progress: React.MutableRefObject<number> }) {
   const wrap = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(true);
   useEffect(() => {
@@ -209,16 +245,11 @@ export default function Globe({ scrollRef }: { scrollRef: React.MutableRefObject
   }, []);
   return (
     <div ref={wrap} className="absolute inset-0">
-      <Canvas
-        frameloop={visible ? 'always' : 'never'}
-        dpr={[1, 1.75]}
-        camera={{ position: [0, 0, 6], fov: 35 }}
-        gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
-      >
-        <Stars radius={60} depth={30} count={1600} factor={2.6} saturation={0} fade speed={0.6} />
-        <Planet scrollRef={scrollRef} />
+      <Canvas frameloop={visible ? 'always' : 'never'} dpr={[1, 1.75]} camera={{ position: [0, 0, 6], fov: 35 }} gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}>
+        <Stars radius={60} depth={30} count={1100} factor={2.2} saturation={0} fade speed={0.4} />
+        <Planet progress={progress} />
         <EffectComposer multisampling={0}>
-          <Bloom mipmapBlur intensity={0.85} luminanceThreshold={0.32} luminanceSmoothing={0.25} radius={0.7} />
+          <Bloom mipmapBlur intensity={0.4} luminanceThreshold={0.55} luminanceSmoothing={0.2} radius={0.5} />
         </EffectComposer>
       </Canvas>
     </div>
