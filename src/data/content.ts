@@ -135,6 +135,15 @@ export const countries = {
   intro: 'We partner with businesses across international markets, providing dedicated outsourcing solutions that align with their operational requirements.',
   quote: "Wherever your business is based, we're ready to become an extension of your team.",
   hub: { name: 'Ahmedabad, India', label: 'Delivery Centre', lat: 23.03, lng: 72.58, tz: 'Asia/Kolkata' },
+  // Coverage timeline (in UK time, 24h clock). TODO confirm with client: these hours are shown on the
+  // site as the team's cover, so they must match what is actually offered before launch.
+  deliveryHoursUK: {
+    team: 'Passionate Global team (Ahmedabad)',
+    core: { from: 9, to: 17, label: 'Business hours' },
+    ooh: { from: 17, to: 9, label: 'Out-of-hours service' },
+  },
+  coverageTitle: '24-hour coverage', // UI label (not client copy) — confirm wording
+  coverageNote: 'Shown in UK time. Bars show each market’s 09:00–17:00 working day.',
   items: [
     { name: 'United Kingdom', code: 'GB', lat: 52.6, lng: -1.6, tz: 'Europe/London', city: 'London' },
     { name: 'Ireland', code: 'IE', lat: 53.2, lng: -8.0, tz: 'Europe/Dublin', city: 'Dublin' },
