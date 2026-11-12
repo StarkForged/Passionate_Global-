@@ -3,7 +3,7 @@
  * and re-skinned with brand tokens. Keyframes live in src/styles/index.css.
  */
 import { Children, useEffect, useId, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from 'react';
-import { motion, useInView, useMotionValue, useSpring, type Variants } from 'framer-motion';
+import { motion, useInView, useMotionValue, useSpring, useTransform, type MotionValue, type Variants } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { prefersReducedMotion } from '@/lib/scroll';
 
@@ -152,6 +152,26 @@ export function DotPattern({ width = 22, height = 22, cr = 1, className }: { wid
       <rect width="100%" height="100%" fill={`url(#${id})`} />
     </svg>
   );
+}
+
+/* ---------------- Text Reveal (words fill in with scroll) ----------------
+ * Magic UI ships this with its own 200vh wrapper; here the caller owns the tall/sticky layout
+ * and passes its `useScroll` progress, so the reveal can share a pinned stage with other content.
+ * (The caller must own the ref: a child's layout effect runs before the parent's ref attaches.) */
+export function TextReveal({ text, progress, className, from = 0.15 }: { text: string; progress: MotionValue<number>; className?: string; from?: number }) {
+  const words = text.split(' ');
+  return (
+    <p className={cn('flex flex-wrap', className)} aria-label={text}>
+      {words.map((w, i) => {
+        const s = 0.08 + (i / words.length) * 0.8;
+        return <Word key={i} progress={progress} range={[s, s + 0.8 / words.length]} from={from}>{w}</Word>;
+      })}
+    </p>
+  );
+}
+function Word({ children, progress, range, from }: { children: string; progress: MotionValue<number>; range: [number, number]; from: number }) {
+  const opacity = useTransform(progress, range, [from, 1]);
+  return <motion.span aria-hidden style={{ opacity }} className="mr-[0.25em]">{children}</motion.span>;
 }
 
 /* ---------------- Bento Grid ---------------- */
