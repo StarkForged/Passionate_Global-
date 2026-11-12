@@ -22,6 +22,7 @@
   .text-grad { background: linear-gradient(135deg,#1679E0,#0361DB 60%,#0245A8); -webkit-background-clip: text; background-clip: text; color: transparent; }
   .text-grad-sky { background: linear-gradient(135deg,#9CCBFF,#4D9BFF 55%,#2F7FF0); -webkit-background-clip: text; background-clip: text; color: transparent; }
   .text-grad-light { background: linear-gradient(180deg,#fff 15%,#8CC4FF 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .text-outline { color: transparent; -webkit-text-stroke: 2px rgba(3,97,219,.35); }
   .text-sweep { background: linear-gradient(100deg,#0361DB 0%,#0361DB 38%,#6FB2FF 50%,#0361DB 62%,#0361DB 100%); background-size: 260% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: sweep 5s cubic-bezier(.45,0,.2,1) infinite; }
   .hairline { background: linear-gradient(90deg, transparent, rgba(1,21,45,.12), transparent); height: 1px; }
   .hairline-dark { background: linear-gradient(90deg, transparent, rgba(160,200,255,.2), transparent); height: 1px; }
