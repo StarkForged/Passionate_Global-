@@ -45,7 +45,7 @@ function RecruitmentArt() {
       <span className="absolute left-[400px] top-[28px] flex items-center gap-1.5 rounded-full bg-brand px-3 py-1 text-[14px] font-semibold text-white shadow-blue"><Check className="h-4 w-4" strokeWidth={2.5} />Placed</span>
       {on && [0, 1, 2, 3].map((i) => (
         <div key={i} className="travel absolute left-0 top-0 flex h-[50px] w-[150px] items-center gap-2.5 rounded-2xl bg-white px-3 shadow-lift"
-          style={{ offsetPath: `path("${PATH}")`, animationDelay: `${-i * 2.6 + 1.6}s` }}>
+          style={{ offsetPath: `path("${PATH}")`, offsetDistance: `${14 + i * 24}%`, animationDelay: `${-i * 2.6 + 1.6}s` }}>
           <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-grad text-white"><UserRound className="h-4 w-4" /></span>
           <span className="flex flex-1 flex-col gap-1.5"><span className="h-2 w-[80%] rounded-full bg-navy/15" /><span className="h-2 w-[50%] rounded-full bg-navy/[0.08]" /></span>
         </div>

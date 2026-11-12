@@ -28,9 +28,10 @@ export function NumberTicker({ value, className, delay = 0 }: { value: number; c
   const inView = useInView(ref, { once: true, margin: '0px' });
   useEffect(() => {
     if (!inView) return;
+    if (prefersReducedMotion()) { spring.jump(value); return; }
     const t = setTimeout(() => mv.set(value), delay * 1000);
     return () => clearTimeout(t);
-  }, [inView, value, delay, mv]);
+  }, [inView, value, delay, mv, spring]);
   useEffect(() => spring.on('change', (v) => { if (ref.current) ref.current.textContent = Math.round(v).toString(); }), [spring]);
   return <span ref={ref} className={cn('inline-block tabular-nums', className)}>{prefersReducedMotion() ? value : 0}</span>;
 }

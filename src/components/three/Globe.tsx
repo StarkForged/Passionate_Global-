@@ -13,6 +13,7 @@ import * as THREE from 'three';
 import geo from '@/data/geo.json';
 import { countries } from '@/data/content';
 import { formatTime, useNow } from '@/hooks/useClock';
+import { prefersReducedMotion } from '@/lib/scroll';
 
 const D2R = Math.PI / 180;
 const toVec = (lat: number, lng: number, r = 1) => {
@@ -127,6 +128,7 @@ function Planet({ progress }: { progress: React.MutableRefObject<number> }) {
   const { viewport, size, gl } = useThree();
   const pointer = useRef({ x: 0, y: 0 });
   const now = useNow(15000);
+  const still = useMemo(prefersReducedMotion, []);
 
   useEffect(() => {
     const m = (e: PointerEvent) => { pointer.current.x = (e.clientX / innerWidth - 0.5) * 2; pointer.current.y = (e.clientY / innerHeight - 0.5) * 2; };
@@ -185,7 +187,7 @@ function Planet({ progress }: { progress: React.MutableRefObject<number> }) {
     const t = state.clock.elapsedTime;
     arcs.forEach((a) => (a.mat.uniforms.uTime.value = t));
     const sp = progress.current;
-    spin.current.rotation.y += dt * 0.018;
+    if (!still) spin.current.rotation.y += dt * 0.018;
     group.current.rotation.x = THREE.MathUtils.lerp(group.current.rotation.x, -0.78 + pointer.current.y * 0.03 + sp * 0.12, 0.06);
     group.current.rotation.z = THREE.MathUtils.lerp(group.current.rotation.z, -0.06 + pointer.current.x * -0.025, 0.05);
     group.current.position.y = baseY + sp * viewport.height * 0.32;

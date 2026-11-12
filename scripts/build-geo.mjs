@@ -1,4 +1,4 @@
-// Generates src/data/geo.json — land-dot coordinates for the hero globe and the world map.
+// Generates src/data/geo.json — land-dot indices for the hero planet (three/Globe.tsx).
 // Run: npm run geo
 import { readFileSync, writeFileSync } from 'node:fs';
 import { feature } from 'topojson-client';
@@ -19,15 +19,6 @@ for (let i = 0; i < N; i++) {
   if (geoContains(land, [lng, lat])) { idx.push(i - prev); prev = i; }
 }
 
-// Flat map: equirectangular grid
-const COLS = 190, ROWS = 80, LAT_TOP = 80, LAT_BOTTOM = -58, map = [];
-for (let r = 0; r < ROWS; r++) {
-  const lat = LAT_TOP - r * ((LAT_TOP - LAT_BOTTOM) / (ROWS - 1));
-  for (let c = 0; c < COLS; c++) {
-    const lng = -180 + (c + 0.5) * (360 / COLS);
-    if (geoContains(land, [lng, lat])) map.push(c, r);
-  }
-}
 writeFileSync(new URL('../src/data/geo.json', import.meta.url),
-  JSON.stringify({ globe: { n: N, idx }, map: { cols: COLS, rows: ROWS, latTop: LAT_TOP, latBottom: LAT_BOTTOM, pts: map } }));
-console.log('globe', idx.length, 'map', map.length / 2);
+  JSON.stringify({ globe: { n: N, idx } }));
+console.log('globe', idx.length);
