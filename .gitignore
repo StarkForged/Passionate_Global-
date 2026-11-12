@@ -1,3 +1,67 @@
+# ---------- AI / assistant files ----------
+CLAUDE.md
+CLAUDE.local.md
+CLAUDE_CODE_PROMPT.md
+REDESIGN_BRIEF.md
+.claude/
+.cursor/
+.cursorrules
+.cursorignore
+.windsurfrules
+.aider*
+.copilot/
+.github/copilot-instructions.md
+.continue/
+.codeium/
+AGENTS.md
+GEMINI.md
+*.prompt.md
+
+# ---------- Dependencies ----------
 node_modules/
+.pnp
+.pnp.js
+.yarn/
+
+# ---------- Build output ----------
 dist/
+dist-ssr/
+build/
+*.tsbuildinfo
+.vite/
+
+# ---------- Environment / secrets ----------
+.env
+.env.*
+!.env.example
+*.local
+
+# ---------- Logs ----------
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ---------- Testing / QA output ----------
+coverage/
+playwright-report/
+test-results/
+qa/
+__pycache__/
+*.pyc
+
+# ---------- Editors ----------
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*.sublime-workspace
+
+# ---------- OS ----------
 .DS_Store
+Thumbs.db
+desktop.ini
+ehthumbs.db
