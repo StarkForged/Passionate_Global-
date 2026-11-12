@@ -64,6 +64,14 @@ export const about = {
 export const mission = 'To empower businesses with exceptional offshore talent that drives operational excellence, sustainable growth and long-term success.';
 export const vision = 'To become a globally trusted outsourcing partner recognised for quality, innovation and lasting business relationships.';
 export const values = ['Partnership', 'Integrity', 'Accountability', 'Excellence', 'Innovation', 'Continuous Improvement'];
+// Labels for the Mission / Vision / Values section (headings from the source doc).
+export const purpose = {
+  srTitle: 'Our Mission, Vision and Core Values',
+  missionLabel: 'Our Mission',
+  visionLabel: 'Our Vision',
+  valuesLabel: 'Our Values',
+  coreValuesLabel: 'Core Values',
+};
 
 export const why = {
   eyebrow: 'Why Passionate Global',
