@@ -26,10 +26,11 @@ const LAYOUTS: Orb[][] = [
   [{ x: '30%', y: '24%', size: 460, color: ORB_COLORS[0] }, { x: '80%', y: '64%', size: 400, color: ORB_COLORS[1] }, { x: '4%', y: '76%', size: 380, color: ORB_COLORS[2] }],
 ];
 
-export function GlassBackdrop({ shift = 0, dots = true, className, scale = 1 }: { shift?: number; dots?: boolean; className?: string; scale?: number }) {
+/** `bare`: orbs only (no ice→white fill), for a local light cluster behind one element. */
+export function GlassBackdrop({ shift = 0, dots = true, bare = false, className, scale = 1 }: { shift?: number; dots?: boolean; bare?: boolean; className?: string; scale?: number }) {
   const orbs = LAYOUTS[shift % LAYOUTS.length];
   return (
-    <div aria-hidden className={cn('pointer-events-none absolute inset-0 -z-10 overflow-hidden bg-[linear-gradient(180deg,#EFF4F9_0%,#FFFFFF_100%)]', className)}>
+    <div aria-hidden className={cn('pointer-events-none absolute inset-0 -z-10', !bare && 'overflow-hidden bg-[linear-gradient(180deg,#EFF4F9_0%,#FFFFFF_100%)]', className)}>
       {orbs.map((o, i) => (
         <motion.div key={i} className="absolute" initial={false} animate={{ left: o.x, top: o.y }} transition={{ duration: 1.4, ease: EASE }}
           style={{ width: o.size * scale, height: o.size * scale, marginLeft: (-o.size * scale) / 2, marginTop: (-o.size * scale) / 2 }}>
@@ -73,8 +74,8 @@ export function GlassHexagon({ width, tint = true, children, className, glow = f
   const P = '50,1 99,29.2 99,86.3 50,114.5 1,86.3 1,29.2';
   return (
     <div className={cn('relative', className)} style={{ width, height: h }}>
-      <div aria-hidden className="absolute inset-x-[8%] top-[14%] h-full blur-2xl"><div className="h-full w-full bg-[rgba(3,60,140,.22)]" style={{ clipPath: HEX_CLIP }} /></div>
-      {glow && <div aria-hidden className="absolute inset-[-12%] rounded-full bg-[radial-gradient(closest-side,rgba(90,165,255,.35),transparent)]" />}
+      <div aria-hidden className="absolute inset-x-[8%] top-[14%] h-full blur-2xl"><div className="h-full w-full bg-[rgba(3,60,140,.12)]" style={{ clipPath: HEX_CLIP }} /></div>
+      {glow && <div aria-hidden className="absolute inset-[-12%] rounded-full bg-[radial-gradient(closest-side,rgba(90,165,255,.22),transparent)]" />}
       <div className={cn('glass-hex absolute inset-0', tint && 'glass-tint')} style={{ clipPath: HEX_CLIP }} />
       <svg viewBox="0 0 100 115.47" className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden>
         <defs>
