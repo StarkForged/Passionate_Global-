@@ -52,7 +52,7 @@ function Member({ m, i }: { m: (typeof team.members)[number]; i: number }) {
       className="group relative overflow-hidden rounded-[2rem] bg-white shadow-lift">
       <div className="relative aspect-[4/4.6]">
         <Portrait initials={m.initials} photo={m.photo} name={m.name} fit={(m as PhotoOpts).photoFit} pos={(m as PhotoOpts).photoPos} className="absolute inset-0 transition-transform duration-[1.2s] ease-out group-hover:scale-[1.04]" />
-        <span className="absolute right-4 top-4 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[12px] font-semibold text-white backdrop-blur-md">{m.tenure}</span>
+        <span className="absolute right-4 top-4 rounded-full border border-white/20 bg-navy/50 px-3 py-1 text-[12px] font-semibold text-white backdrop-blur-md">{m.tenure}</span>
         <div className="absolute inset-x-0 bottom-0 p-6 text-white">
           <h3 className="font-display text-[26px] font-semibold tracking-[-0.03em]">{m.name}</h3>
           <p className="mt-0.5 text-[14px] font-medium text-[#BFDCFF]">{m.role}</p>

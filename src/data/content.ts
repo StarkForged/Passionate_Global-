@@ -219,16 +219,14 @@ export const team = {
   },
   members: [
     {
-      // TODO photo: the supplied ID-card PDF is corrupt (blank image); needs a re-export
-      name: 'Heena Vaishnav', role: 'Operations Manager', initials: 'HV', photo: '', tenure: '7+ years',
+      name: 'Heena Vaishnav', role: 'Operations Manager', initials: 'HV', photo: 'img/team/heena-vaishnav.webp', photoPos: '50% 30%', tenure: '7+ years',
       bio: [
         'Heena Vaishnav is an experienced Operations Manager with over seven years in recruitment outsourcing. She began her career in the banking sector, where she built a strong foundation in customer service and relationship management before transitioning into recruitment.',
         'Having progressed from a top-performing recruiter to a successful team leader, Heena specialises in building, mentoring, and managing high-performing teams. Her hands-on approach, operational expertise, and commitment to developing people enable her teams to consistently deliver outstanding results and exceptional service to clients.',
       ],
     },
     {
-      // TODO photo: the supplied ID-card PDF is corrupt (blank image); needs a re-export
-      name: 'Dixita Rajput', role: 'Compliance Manager', initials: 'DR', photo: '', tenure: '6+ years',
+      name: 'Dixita Rajput', role: 'Compliance Manager', initials: 'DR', photo: 'img/team/dixita-rajput.webp', photoPos: '50% 30%', tenure: '6+ years',
       bio: [
         'Dixita Rajput has been an integral part of the organisation for over six years, progressing from a Junior Compliance Officer to Compliance Manager through her dedication, exceptional work ethic, and commitment to excellence.',
         'Known for her meticulous attention to detail, Dixita specialises in maintaining the highest compliance standards while developing efficient processes that enable her team to deliver accurate and seamless operations. Her structured approach and focus on continuous improvement ensure both operational efficiency and outstanding service quality.',
@@ -236,8 +234,7 @@ export const team = {
     },
     {
       // NOTE: docx mixes "her"/"he" — written as "his"; confirm with client.
-      // TODO photo: the supplied ID-card PDF is corrupt (blank image); needs a re-export
-      name: 'Anand Malhotra', role: 'Recruitment Manager', initials: 'AM', photo: '', tenure: 'Since 2023',
+      name: 'Anand Malhotra', role: 'Recruitment Manager', initials: 'AM', photo: 'img/team/anand-malhotra.webp', photoPos: '50% 30%', tenure: 'Since 2023',
       bio: [
         'Anand started his career in the US IT sector as a recruiter. He joined us as a trainee recruiter in 2023 and has been an integral part of the team ever since.',
         'He is a self-motivated individual with a hunger for success.',
