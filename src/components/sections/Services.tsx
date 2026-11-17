@@ -4,12 +4,12 @@
  * (skeleton bars instead of names / amounts).
  */
 import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react';
-import { AnimatePresence, motion, useAnimationFrame, useInView, useMotionValue, useScroll, useTransform, type MotionValue } from 'framer-motion';
+import { AnimatePresence, motion, useAnimationFrame, useInView, useMotionValue, useMotionValueEvent, useScroll, useTransform, type MotionValue } from 'framer-motion';
 import { Check, UserRound, Inbox, CircleCheck } from 'lucide-react';
 import { services } from '@/data/content';
 import { Clock, EASE, Reveal, SectionHeader } from '@/components/ui';
 import { formatTime, hourIn, useNow } from '@/hooks/useClock';
-import { useMedia, usePinnable } from '@/hooks/useMedia';
+import { useMedia } from '@/hooks/useMedia';
 import { prefersReducedMotion } from '@/lib/scroll';
 import { cn } from '@/lib/utils';
 
@@ -324,21 +324,22 @@ const artSize = [[520, 380], [420, 440], [440, 470], [420, 420]];
 const artSizeCompact = [[520, 380], [420, 440], [340, 340], [420, 420]];
 
 /** Scales a fixed-size illustration to fit its panel. The art is taken out of flow so its
- *  fixed width never widens the card; on small screens the panel height follows the scale. */
+ *  fixed width never widens the card. On desktop the panel height is set by the card (art scales to fit it);
+ *  below lg the panel height follows the scale. */
 function Fit({ i }: { i: number }) {
   const ref = useRef<HTMLDivElement>(null);
   const compact = useMedia('(max-width: 639px)');
+  const lg = useMedia('(min-width: 1024px)');
   const [w, h] = (compact ? artSizeCompact : artSize)[i];
   const [s, setS] = useState(1);
   useEffect(() => {
     const el = ref.current; if (!el) return;
-    const lg = matchMedia('(min-width: 1024px)');
-    const ro = new ResizeObserver(([e]) => setS(Math.min(1, (e.contentRect.width - 32) / w, lg.matches ? (e.contentRect.height - 32) / h : 1)));
+    const ro = new ResizeObserver(([e]) => setS(Math.min(1, (e.contentRect.width - 32) / w, lg ? (e.contentRect.height - 24) / h : 1)));
     ro.observe(el); return () => ro.disconnect();
-  }, [w, h]);
+  }, [w, h, lg]);
   return (
     <div className="flex h-full w-full min-w-0 flex-col">
-      <div ref={ref} className="relative w-full min-w-0 flex-1 overflow-hidden" style={{ minHeight: Math.round(h * s + 40) }}>
+      <div ref={ref} className="relative w-full min-w-0 flex-1 overflow-hidden" style={{ minHeight: lg ? 360 : Math.round(h * s + 40) }}>
         <div className="absolute left-1/2 top-1/2" style={{ width: w, height: h, transform: `translate(-50%, -50%) scale(${s})` }}>{arts[i](compact)}</div>
       </div>
       {compact && i === 0 && <StageChips />}
@@ -347,42 +348,67 @@ function Fit({ i }: { i: number }) {
   );
 }
 
-const STICK = 96, STEP = 24;
+/* Stacking geometry (round 2: every card must fit the viewport, e.g. a 1366×650 laptop).
+ * Sticky top = nav (16px offset + 56px pill) + 16px gap, then 10px per stacked card. Card height fills the rest
+ * of the viewport, clamped to 520–640px. Stacking is off below 1024px wide or 640px tall. */
+const STICK = 88, STEP = 10;
+const CARD_H = `min(640px, max(520px, calc(100svh - ${STICK + 32 + STEP * 3}px)))`;
+const useStackable = () => useMedia('(min-width: 1024px) and (min-height: 640px) and (prefers-reduced-motion: no-preference)');
 type Geo = { top: number; vh: number };
 
 function Card({ i, scrollY, geo, stacked }: { i: number; scrollY: MotionValue<number>; geo: Geo; stacked: boolean }) {
   const s = services.items[i], t = themes[i], n = services.items.length;
-  // Card i+1 slides over card i between: its top entering the viewport → it sticking.
+  // Card i+1 slides over card i between: its top entering the viewport -> it sticking.
   const coverFrom = geo.top + i * geo.vh;
   const coverTo = geo.top + (i + 1) * geo.vh - STICK - (i + 1) * STEP;
-  const lastSticks = geo.top + (n - 1) * geo.vh - STICK - (n - 1) * STEP;
   const last = i === n - 1;
-  // covered cards shrink (first card ends at 0.94) and dim as the next one slides over
-  const scale = useTransform(scrollY, [coverFrom, Math.max(coverFrom + 1, lastSticks)], [1, last ? 1 : 1 - (n - 1 - i) * 0.02]);
-  const dim = useTransform(scrollY, [coverFrom + (coverTo - coverFrom) * 0.4, coverTo], [0, last ? 0 : 0.3]);
+  // covered cards keep their own colour: they settle at 0.96 scale and 85% opacity, so the 10px that
+  // peeks above the next card reads as a deliberate deck (round 1 dimmed them with navy = grey "crop" edges)
+  const scale = useTransform(scrollY, [coverFrom, Math.max(coverFrom + 1, coverTo)], [1, last ? 1 : 0.96]);
+  // dim to ~85% with an overlay in the card's own tone (opacity would let the card underneath show through)
+  const dim = useTransform(scrollY, [coverFrom + (coverTo - coverFrom) * 0.5, Math.max(coverFrom + 2, coverTo)], [0, last ? 0 : 1]);
+  const lead = 'lead' in s && s.lead;
   return (
-    <motion.article style={stacked ? { scale, transformOrigin: 'top center' } : undefined}
-      className={cn('relative grid overflow-hidden rounded-[2rem] shadow-lift lg:h-[580px] lg:grid-cols-[45fr_55fr]', t.card)}>
-      <div className="flex flex-col p-8 sm:p-11 lg:order-1 lg:p-10 xl:p-12">
+    <motion.article style={stacked ? { scale, transformOrigin: 'top center', height: CARD_H } : undefined}
+      className={cn('relative grid overflow-hidden rounded-[2rem] shadow-lift lg:min-h-[520px] lg:grid-cols-[52fr_48fr]', t.card)}>
+      <div className="flex min-h-0 flex-col p-8 sm:p-11 lg:order-1 lg:p-10 xl:px-12">
         <span className={cn('font-display text-[15px] font-semibold tabular-nums tracking-[0.04em]', t.idx)}>0{i + 1}</span>
-        {'lead' in s && s.lead && <p className={cn('mt-6 font-display text-[19px] font-medium tracking-[-0.015em]', t.idx)}>{s.lead}</p>}
-        <h3 className={cn('font-display text-[clamp(2rem,3.4vw,2.9rem)] font-semibold leading-[1.04] tracking-[-0.04em]', 'lead' in s && s.lead ? 'mt-3' : 'mt-6', t.title)}>{s.title.split(' ').map((w, k) => <span key={k} className={w.includes('-') ? 'whitespace-nowrap' : undefined}>{k > 0 && ' '}{w}</span>)}</h3>
-        <p className={cn('mt-5 text-[17px] leading-[1.7]', t.body)}>{s.body}</p>
-        <p className={cn('mt-auto pt-8 text-[12px] font-semibold uppercase tracking-[0.14em]', t.idx)}>Services include</p>
-        <ul className="mt-4 grid gap-x-5 gap-y-3 sm:grid-cols-2">
+        {lead && <p className={cn('mt-4 font-display text-[18px] font-medium tracking-[-0.015em]', t.idx)}>{s.lead}</p>}
+        <h3 className={cn('font-display text-[clamp(32px,3.4vw,48px)] font-semibold leading-[1.04] tracking-[-0.04em]', lead ? 'mt-2' : 'mt-4', t.title)}>{s.title.split(' ').map((w, k) => <span key={k} className={w.includes('-') ? 'whitespace-nowrap' : undefined}>{k > 0 && ' '}{w}</span>)}</h3>
+        <p className={cn('mt-4 max-w-[60ch] text-[16px] leading-[1.6]', t.body)}>{s.body}</p>
+        <p className={cn('mt-auto pt-6 text-[12px] font-semibold uppercase tracking-[0.14em]', t.idx)}>Services include</p>
+        <ul className="mt-3 grid gap-x-5 gap-y-2 sm:grid-cols-2">
           {s.list.map((x) => (
-            <li key={x} className={cn('flex items-start gap-2.5 text-[15.5px] font-medium leading-snug', t.item)}>
+            <li key={x} className={cn('flex items-start gap-2.5 text-[15px] font-medium leading-snug', t.item)}>
               <span className={cn('mt-[1px] grid h-5 w-5 shrink-0 place-items-center rounded-full', t.check)}><Check className="h-3 w-3" strokeWidth={3} /></span>{x}
             </li>
           ))}
         </ul>
       </div>
-      <div className={cn('order-first m-3 rounded-[1.5rem] lg:order-2 lg:ml-0', t.panel)}><Fit i={i} /></div>
-      {stacked && <motion.div aria-hidden style={{ opacity: dim }} className="pointer-events-none absolute inset-0 bg-navy" />}
+      <div className={cn('order-first m-3 min-h-0 rounded-[1.5rem] lg:order-2 lg:ml-0', t.panel)}><Fit i={i} /></div>
+      {stacked && <motion.div aria-hidden style={{ opacity: dim }} className={cn('pointer-events-none absolute inset-0', t.dark ? 'bg-black/15' : 'bg-navy/[0.06]')} />}
     </motion.article>
   );
 }
 
+/** Slim "01 / 04" sequence indicator in the right gutter, sticky at mid-screen while the stack scrolls. */
+function StackProgress({ scrollY, geo }: { scrollY: MotionValue<number>; geo: Geo }) {
+  const n = services.items.length;
+  const [idx, setIdx] = useState(0);
+  const fill = useTransform(scrollY, [geo.top - geo.vh * 0.2, geo.top + (n - 1) * geo.vh], [1 / n, 1], { clamp: true });
+  useMotionValueEvent(scrollY, 'change', (y) => setIdx(Math.min(n - 1, Math.max(0, Math.round((y - geo.top + geo.vh * 0.25) / geo.vh)))));
+  return (
+    <div className="pointer-events-none sticky top-1/2 z-10 h-0" aria-hidden>
+      <div className="absolute -right-7 top-0 flex -translate-y-1/2 flex-col items-center gap-3 xl:-right-12">
+        <span className="font-display text-[13px] font-semibold tabular-nums text-brand">0{idx + 1}</span>
+        <span className="relative h-28 w-[3px] overflow-hidden rounded-full bg-navy/10">
+          <motion.span className="absolute inset-x-0 top-0 h-full origin-top rounded-full bg-grad" style={{ scaleY: fill }} />
+        </span>
+        <span className="font-display text-[13px] font-semibold tabular-nums text-muted">0{n}</span>
+      </div>
+    </div>
+  );
+}
 
 function Stack() {
   const wrap = useRef<HTMLDivElement>(null);
@@ -396,7 +422,8 @@ function Stack() {
     return () => ro.disconnect();
   }, [scrollY]);
   return (
-    <div ref={wrap} className="relative mt-16">
+    <div ref={wrap} className="relative mt-14">
+      <StackProgress scrollY={scrollY} geo={geo} />
       {services.items.map((s, i) => (
         <div key={s.id} className="sticky h-[100vh] last:h-auto" style={{ top: STICK + i * STEP }}>
           <Card i={i} scrollY={scrollY} geo={geo} stacked />
@@ -407,7 +434,7 @@ function Stack() {
 }
 
 export default function Services() {
-  const pin = usePinnable();
+  const pin = useStackable();
   const still = useMotionValue(0);
   const geo = { top: 0, vh: 1 };
   return (
