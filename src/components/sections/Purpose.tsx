@@ -129,7 +129,7 @@ export default function Purpose() {
   const pin = usePinnable();
   const lg = useMedia('(min-width: 1024px)');
   return (
-    <section id="purpose" data-theme="light" className="relative bg-ice py-24 md:py-32 lg:py-24">
+    <section id="purpose" data-theme="light" className="relative overflow-x-clip bg-ice py-24 md:py-32 lg:py-24">
       <h2 className="sr-only">{purpose.srTitle}</h2>
       {pin ? <Story /> : <StoryStatic />}
 
