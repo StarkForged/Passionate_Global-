@@ -1,16 +1,19 @@
 /**
  * Mission / Vision / Values — "sticky scroll story" (Aceternity Sticky Scroll Reveal pattern, driven by
  * page scroll instead of an inner scroller). Reference: ref7 / ref8 hexagon badges.
- * One statement readable at a time; the sticky panel morphs hexagon → white hexagon → honeycomb.
+ * One statement readable at a time; the sticky glass panel crossfades Mission (Target) → Vision (Eye) → Values
+ * (honeycomb of mini glass hexagons) while the orb light behind it moves per step (round 2: no navy panel).
  */
 import { useEffect, useRef, useState } from 'react';
-import { AnimatePresence, LayoutGroup, motion, useMotionValueEvent, useScroll } from 'framer-motion';
+import { AnimatePresence, motion, useMotionValueEvent, useScroll } from 'framer-motion';
 import { Target, Eye, type LucideIcon } from 'lucide-react';
 import { mission, vision, values, purpose } from '@/data/content';
 import { EASE } from '@/components/ui';
 import { cn } from '@/lib/utils';
 import { useMedia, usePinnable } from '@/hooks/useMedia';
-import ValuesWheel, { valueIcons, HEX } from './ValuesWheel';
+import ValuesWheel, { valueIcons } from './ValuesWheel';
+import { GlassBackdrop, GlassHexagon, GlassIcon, GlassPanel } from '@/components/ui/glass';
+import { prefersReducedMotion } from '@/lib/scroll';
 
 
 const blocks = [
@@ -19,31 +22,20 @@ const blocks = [
   { label: purpose.valuesLabel, text: `${values.slice(0, -1).join(', ')} and ${values[values.length - 1]}.` },
 ];
 
-/** Glossy hexagon badge. `tone` blue = brand glass, white = pearl. */
-function Hex({ tone, icon: Icon, size, layoutId, lit = true }: { tone: 'blue' | 'white'; icon: LucideIcon; size: number; layoutId?: string; lit?: boolean }) {
-  const blue = tone === 'blue';
-  return (
-    <motion.div layoutId={layoutId} className="relative" style={{ width: size, height: size * 1.1547, filter: `drop-shadow(0 ${size / 10}px ${size / 7}px ${blue ? 'rgba(3,97,219,.38)' : 'rgba(1,21,45,.22)'})` }}
-      transition={{ duration: 0.8, ease: EASE }}>
-      <motion.div className="absolute inset-0" style={{ clipPath: HEX }}
-        animate={{ background: blue ? 'linear-gradient(160deg,#6FB2FF 0%,#0361DB 52%,#0245A8 100%)' : 'linear-gradient(160deg,#FFFFFF 0%,#E3EEFB 70%,#C9DDF5 100%)', opacity: lit ? 1 : 0.55 }}
-        transition={{ duration: 0.6, ease: EASE }} />
-      <div className="absolute inset-0 bg-[linear-gradient(125deg,rgba(255,255,255,.6)_0%,rgba(255,255,255,0)_42%)]" style={{ clipPath: HEX }} />
-      <div className="absolute inset-0 grid place-items-center">
-        <Icon style={{ width: size * 0.32, height: size * 0.32 }} strokeWidth={1.6} className={blue ? 'text-white' : 'text-brand'} />
-      </div>
-    </motion.div>
-  );
+/** Glass hexagon with a GlassIcon inside (round 2: no solid navy / blue shapes). */
+function GlassBadge({ icon, size }: { icon: LucideIcon; size: number }) {
+  return <GlassHexagon width={size} glow><GlassIcon icon={icon} size={Math.round(size * 0.3)} active /></GlassHexagon>;
 }
 
-function Honeycomb({ size = 104, animate = true }: { size?: number; animate?: boolean }) {
+/** Values: honeycomb of 6 mini glass hexagons; the lit one gets the blue-tint glass. */
+function Honeycomb({ size = 96, animate = true }: { size?: number; animate?: boolean }) {
   const [on, setOn] = useState(0);
   useEffect(() => {
-    if (!animate) return;
+    if (!animate || prefersReducedMotion()) return;
     const id = setInterval(() => setOn((v) => (v + 1) % 6), 1100);
     return () => clearInterval(id);
   }, [animate]);
-  const h = size * 1.1547, gap = 10;
+  const h = size * 1.1547, gap = 8;
   // 3 columns x 2 rows, second row offset by half a cell (honeycomb)
   return (
     <div className="relative" style={{ width: size * 3.5 + gap * 3, height: h * 1.75 + gap }}>
@@ -51,7 +43,9 @@ function Honeycomb({ size = 104, animate = true }: { size?: number; animate?: bo
         const row = i < 3 ? 0 : 1, col = i % 3;
         return (
           <div key={i} className="absolute" style={{ left: col * (size + gap) + row * (size / 2 + gap / 2), top: row * (h * 0.75 + gap) }}>
-            <Hex tone={on === i ? 'blue' : 'white'} icon={Icon} size={size} layoutId={i === 0 ? 'purpose-hex' : undefined} />
+            <GlassHexagon width={size} tint={on === i} glow={on === i} shadow={false}>
+              <Icon style={{ width: size * 0.3, height: size * 0.3 }} strokeWidth={1.6} className={cn('transition-colors duration-500', on === i ? 'text-brand' : 'text-navy/70')} />
+            </GlassHexagon>
           </div>
         );
       })}
@@ -59,31 +53,28 @@ function Honeycomb({ size = 104, animate = true }: { size?: number; animate?: bo
   );
 }
 
-/** The sticky panel's three states. */
+/** Blur crossfade that ends at `filter: none` (a lingering blur(0) would stop the glass inside from blurring). */
+const swap = {
+  initial: { opacity: 0, scale: 0.96, filter: 'blur(10px)' },
+  animate: { opacity: 1, scale: 1, filter: 'blur(0px)', transitionEnd: { filter: 'none' } },
+  exit: { opacity: 0, scale: 1.03, filter: 'blur(10px)' },
+};
+
+/** The sticky panel: glass on a local orb backdrop whose light moves per step. */
 function Panel({ step }: { step: number }) {
-  // stacked backgrounds crossfaded by opacity (tweening gradient strings bands badly)
-  const bgs = ['radial-gradient(90% 80% at 30% 15%,#FFFFFF 0%,#E2EDFA 100%)', 'radial-gradient(110% 100% at 25% 0%,#0E4590 0%,#03224A 45%,#01152D 80%)', 'radial-gradient(90% 80% at 70% 15%,#FFFFFF 0%,#E2EDFA 100%)'];
   return (
-    <div className="relative grid aspect-square w-full max-w-[480px] place-items-center overflow-hidden rounded-[2rem] shadow-lift">
-      {bgs.map((b, i) => (
-        <motion.div key={i} aria-hidden className="absolute inset-0" style={{ background: b }} initial={false} animate={{ opacity: step === i ? 1 : 0 }} transition={{ duration: 0.8, ease: EASE }} />
-      ))}
-      <LayoutGroup>
+    <div className="relative isolate aspect-square w-full max-w-[480px]">
+      <GlassBackdrop shift={step} dots={false} bare className="-inset-20" scale={0.9} />
+      <GlassPanel className="absolute inset-0 grid place-items-center overflow-hidden">
         <AnimatePresence mode="popLayout" initial={false}>
-          {step < 2 ? (
-            <motion.div key="single" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.4 }}>
-              <Hex tone={step === 0 ? 'blue' : 'white'} icon={step === 0 ? Target : Eye} size={230} layoutId="purpose-hex" />
-            </motion.div>
-          ) : (
-            <motion.div key="comb" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.4 }}>
-              <Honeycomb />
-            </motion.div>
-          )}
+          <motion.div key={step} {...swap} transition={{ duration: 0.6, ease: EASE }}>
+            {step < 2 ? <GlassBadge icon={step === 0 ? Target : Eye} size={236} /> : <Honeycomb />}
+          </motion.div>
         </AnimatePresence>
-      </LayoutGroup>
-      <span className={cn('absolute bottom-6 left-7 text-[12px] font-semibold uppercase tracking-[0.14em] transition-colors duration-700', step === 1 ? 'text-sky' : 'text-brand')}>
-        0{step + 1} / 03
-      </span>
+        <span className="glass absolute bottom-6 left-6 rounded-full px-3.5 py-1.5 text-[12px] font-semibold uppercase tabular-nums tracking-[0.14em] text-brand">
+          0{step + 1} / 03
+        </span>
+      </GlassPanel>
     </div>
   );
 }
@@ -115,9 +106,12 @@ function StoryStatic() {
   return (
     <div className="container-site grid gap-20">
       {blocks.map((b, i) => (
-        <motion.div key={b.label} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.3 }} transition={{ duration: 0.8, ease: EASE }}>
-          <div className={cn('grid aspect-[4/3] w-full place-items-center rounded-[2rem] shadow-soft', i === 1 ? 'bg-[radial-gradient(100%_90%_at_30%_10%,#0B3A7A_0%,#01152D_70%)]' : 'bg-[radial-gradient(90%_80%_at_30%_15%,#FFFFFF_0%,#E2EDFA_100%)]')}>
-            {i < 2 ? <Hex tone={i === 0 ? 'blue' : 'white'} icon={i === 0 ? Target : Eye} size={130} /> : <Honeycomb size={66} />}
+        <motion.div key={b.label} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.3 }} transition={{ duration: 0.8, ease: EASE }}>
+          <div className="relative isolate aspect-[4/3] w-full">
+            <GlassBackdrop shift={i} dots={false} bare className="-inset-6" scale={0.6} />
+            <GlassPanel className="absolute inset-0 grid place-items-center overflow-hidden">
+              {i < 2 ? <GlassBadge icon={i === 0 ? Target : Eye} size={140} /> : <Honeycomb size={64} />}
+            </GlassPanel>
           </div>
           <p className="mt-8 text-[12px] font-semibold uppercase tracking-[0.14em] text-brand">{b.label}</p>
           <p className="mt-4 font-display text-[clamp(1.6rem,6.4vw,2.25rem)] font-semibold leading-[1.18] tracking-[-0.035em] text-ink">{b.text}</p>

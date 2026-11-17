@@ -14,6 +14,10 @@ import { type LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export const HEX_CLIP = 'polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%)';
+/** Hexagon as a mask: unlike clip-path, a mask also clips the backdrop blur (Chrome paints backdrop-filter
+ *  across the whole box when only clip-path is set, which shows as a frosted rectangle). */
+const HEX_MASK = `url("data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 115.47" preserveAspectRatio="none"><polygon points="50,0 100,28.87 100,86.6 50,115.47 0,86.6 0,28.87"/></svg>')}")`;
+const hexMask = { WebkitMaskImage: HEX_MASK, maskImage: HEX_MASK, WebkitMaskSize: '100% 100%', maskSize: '100% 100%', WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat' } as CSSProperties;
 const EASE = [0.22, 1, 0.36, 1] as const;
 
 /* ---------------- Backdrop ---------------- */
@@ -65,18 +69,19 @@ export function GlassIcon({ icon: Icon, size = 64, active = false, className }: 
 }
 
 /* ---------------- Hexagon ---------------- */
-/** Frosted hexagon. clip-path removes CSS borders, so the border + top-left highlight are an SVG overlay;
+/** Frosted hexagon (masked, see HEX_MASK). The mask removes CSS borders, so the border + top-left highlight are an SVG overlay;
  *  the shadow is a blurred sibling (a filter on an ancestor would kill the backdrop blur). */
-export function GlassHexagon({ width, tint = true, children, className, glow = false }: { width: number; tint?: boolean; children?: ReactNode; className?: string; glow?: boolean }) {
+/** `shadow={false}` for tightly packed hexagons (a neighbour's blurred shadow shows as a box edge through the glass). */
+export function GlassHexagon({ width, tint = true, children, className, glow = false, shadow = true }: { width: number; tint?: boolean; children?: ReactNode; className?: string; glow?: boolean; shadow?: boolean }) {
   const h = width * 1.1547;
   const id = useId().replace(/:/g, '');
   // hexagon points in a 100 x 115.47 box
   const P = '50,1 99,29.2 99,86.3 50,114.5 1,86.3 1,29.2';
   return (
     <div className={cn('relative', className)} style={{ width, height: h }}>
-      <div aria-hidden className="absolute inset-x-[8%] top-[14%] h-full blur-2xl"><div className="h-full w-full bg-[rgba(3,60,140,.12)]" style={{ clipPath: HEX_CLIP }} /></div>
+      {shadow && <div aria-hidden className="absolute inset-x-[8%] top-[14%] h-full blur-2xl"><div className="h-full w-full bg-[rgba(3,60,140,.12)]" style={{ clipPath: HEX_CLIP }} /></div>}
       {glow && <div aria-hidden className="absolute inset-[-12%] rounded-full bg-[radial-gradient(closest-side,rgba(90,165,255,.22),transparent)]" />}
-      <div className={cn('glass-hex absolute inset-0', tint && 'glass-tint')} style={{ clipPath: HEX_CLIP }} />
+      <div className={cn('glass-hex absolute inset-0', tint && 'glass-tint')} style={hexMask} />
       <svg viewBox="0 0 100 115.47" className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden>
         <defs>
           <linearGradient id={`hl${id}`} x1="0" y1="0" x2="1" y2="1"><stop stopColor="#fff" stopOpacity=".95" /><stop offset=".45" stopColor="#fff" stopOpacity=".25" /><stop offset="1" stopColor="#fff" stopOpacity=".55" /></linearGradient>
