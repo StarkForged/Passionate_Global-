@@ -36,8 +36,9 @@ export const nav = [
 ];
 
 export const hero = {
-  badge: 'Dedicated offshore teams for recruitment businesses',
+  badge: 'Dedicated offshore teams for Recruitment Businesses', // client: "R & B in caps" (label/tagline use)
   kicker: 'Your Business Deserves More Than an Outsourcing Provider.',
+  kickerHighlight: 'Your Business', // highlighted words at the start of the kicker (client round 1)
   title: ['It Deserves a', 'Growth Partner.'],
   body: 'At Passionate Global, we help organisations build dedicated offshore teams that seamlessly integrate with their operations. Through tailored outsourcing solutions, exceptional talent and a commitment to long-term partnerships, we empower businesses to streamline operations, improve efficiency and scale with confidence.',
   primary: "Let's talk",

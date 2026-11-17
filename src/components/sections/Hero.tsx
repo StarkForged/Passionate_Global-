@@ -64,8 +64,8 @@ export default function Hero() {
 
       <div ref={content} className="container-site relative flex flex-col items-center pt-[clamp(8rem,17vh,11rem)] text-center">
         <motion.p initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, ease: EASE, delay: 0.3 }}
-          className="mb-5 max-w-[46ch] text-balance text-[15px] font-medium tracking-[-0.005em] text-[#8DB8EE] sm:text-[16px]">
-          {hero.kicker}
+          className="mb-6 max-w-[46ch] text-balance font-display text-[17px] font-medium leading-snug tracking-[-0.015em] text-[#8DB8EE] sm:text-[19px] lg:text-[21px]">
+          <span className="text-grad-light font-semibold">{hero.kickerHighlight}</span>{hero.kicker.slice(hero.kickerHighlight.length)}
         </motion.p>
 
         <h1 className="font-display text-[clamp(2.75rem,min(8vw,12.5vh),7rem)] font-semibold leading-[0.96] tracking-[-0.045em]" aria-label={hero.title.join(' ')}>
@@ -74,7 +74,7 @@ export default function Hero() {
         </h1>
 
         <motion.p initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, ease: EASE, delay: 1 }}
-          className="mt-6 max-w-[40ch] text-balance text-[17px] leading-relaxed text-[#B6C8E2] sm:text-[18px]">
+          className="mt-6 max-w-[48ch] text-balance text-[17px] leading-relaxed text-[#B6C8E2] sm:text-[18px]">
           {hero.badge}.
         </motion.p>
 
