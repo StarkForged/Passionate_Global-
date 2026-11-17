@@ -14,8 +14,8 @@
 
 @layer components {
   .container-site { @apply mx-auto w-full max-w-site px-5 sm:px-8; }
-  .section { @apply relative py-24 md:py-32 lg:py-36; }
-  .h-section { @apply font-display text-[clamp(2.1rem,4.6vw,3.75rem)] font-semibold leading-[1.04] tracking-[-0.04em]; }
+  .section { @apply relative py-[88px] md:py-32 lg:py-36; }
+  .h-section { @apply font-display text-[clamp(2.25rem,4.6vw,3.75rem)] font-semibold leading-[1.04] tracking-[-0.04em]; }
   .lead { @apply text-[clamp(1rem,1.25vw,1.15rem)] leading-relaxed text-muted; }
   .text-grad { background: linear-gradient(135deg,#1679E0,#0361DB 60%,#0245A8); -webkit-background-clip: text; background-clip: text; color: transparent; }
   .text-grad-sky { background: linear-gradient(135deg,#9CCBFF,#4D9BFF 55%,#2F7FF0); -webkit-background-clip: text; background-clip: text; color: transparent; }
@@ -37,6 +37,8 @@
 @keyframes ping-soft { 0% { transform: scale(1); opacity: .9; } 100% { transform: scale(1.9); opacity: 0; } }
 @keyframes sweep { 0% { background-position: 100% 0; } 55%, 100% { background-position: 0% 0; } }
 @keyframes spin-slow { to { transform: rotate(360deg); } }
+.scroll-cue span { animation: cue 2.2s cubic-bezier(.22,1,.36,1) infinite; }
+@keyframes cue { 0% { transform: translateY(0); opacity: 1; } 70% { transform: translateY(14px); opacity: 0; } 100% { transform: translateY(0); opacity: 0; } }
 .ooh-ping { animation: ooh-ping 1.6s cubic-bezier(.22,1,.36,1) infinite; }
 @keyframes ooh-ping { 0% { transform: scale(1); opacity: .9; } 100% { transform: scale(2.4); opacity: 0; } }
 

@@ -11,7 +11,7 @@ export function Tag({ children, dark = false, className }: { children: ReactNode
   return (
     <span
       className={clsx(
-        'inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[11.5px] font-semibold uppercase tracking-[0.14em]',
+        'inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.14em]',
         dark ? 'border border-white/10 bg-white/[0.06] text-sky' : 'border border-line bg-white text-brand shadow-soft',
         className,
       )}
@@ -47,7 +47,7 @@ export function SplitHeading({ text, as: As = 'h2', className, delay = 0, highli
 }
 
 /* ---------------- Reveal ---------------- */
-export function Reveal({ children, delay = 0, y = 28, className, ...rest }: { children: ReactNode; delay?: number; y?: number; className?: string } & HTMLMotionProps<'div'>) {
+export function Reveal({ children, delay = 0, y = 20, className, ...rest }: { children: ReactNode; delay?: number; y?: number; className?: string } & HTMLMotionProps<'div'>) {
   return (
     <motion.div
       className={className}
@@ -135,6 +135,14 @@ export function Counter({ to, duration = 1.6, className }: { to: number; duratio
     raf = requestAnimationFrame(step); return () => cancelAnimationFrame(raf);
   }, [inView, to, duration]);
   return <span ref={ref} className={clsx('tabular-nums', className)}>{v}</span>;
+}
+
+/* ---------------- Clock (HH:MM) ----------------
+ * Tabular digits so the time never jitters, but a proportional colon: in tabular mode the colon is
+ * full-width and large clocks read "21 : 55". */
+export function Clock({ value, className }: { value: string; className?: string }) {
+  const [h, m] = value.split(':');
+  return <span className={clsx('tabular-nums', className)}>{h}<span className="[font-variant-numeric:normal]">:</span>{m}</span>;
 }
 
 /* ---------------- Logo ---------------- */

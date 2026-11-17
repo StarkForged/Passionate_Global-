@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { hero, trust } from '@/data/content';
 import { Button, EASE } from '@/components/ui';
 import { BorderBeam, Marquee } from '@/components/magicui';
-import { gsap, prefersReducedMotion } from '@/lib/scroll';
+import { gsap, prefersReducedMotion, scrollToHash } from '@/lib/scroll';
 
 const Globe = lazy(() => import('@/components/three/Globe'));
 
@@ -40,6 +40,7 @@ export default function Hero() {
       gsap.timeline({ scrollTrigger: { trigger: section.current, start: 'top top', end: 'bottom top', scrub: true, onUpdate: (s) => (progress.current = s.progress) } })
         .to(content.current, { yPercent: -35, opacity: 0, ease: 'none', duration: 0.6 }, 0)
         .to(trustRef.current, { opacity: 0, ease: 'none', duration: 0.3 }, 0)
+        .to('.scroll-cue', { opacity: 0, ease: 'none', duration: 0.15 }, 0)
         .to(scrim.current, { opacity: 0, ease: 'none', duration: 0.35 }, 0.05)
         .fromTo(bloom.current, { opacity: 0 }, { opacity: 1, ease: 'none', duration: 0.3 }, 0.05)
         .fromTo(glow.current, { opacity: 0 }, { opacity: 1, ease: 'power1.in', duration: 0.4 }, 0.22)
@@ -88,10 +89,17 @@ export default function Hero() {
         </motion.div>
       </div>
 
+      {/* scroll cue */}
+      <motion.a href="#about" aria-label="Scroll to About" onClick={(e) => { e.preventDefault(); scrollToHash('#about'); }}
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1, delay: 1.8 }}
+        className="scroll-cue absolute bottom-[132px] left-1/2 hidden h-11 w-7 -translate-x-1/2 justify-center rounded-full border border-white/20 pt-2 transition-colors hover:border-white/50 sm:flex [@media(max-height:760px)]:hidden">
+        <span className="h-2 w-[3px] rounded-full bg-white/80" />
+      </motion.a>
+
       {/* trust marquee */}
       <div ref={trustRef} className="absolute inset-x-0 bottom-0 pb-6 sm:pb-8">
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1.2, delay: 1.5 }}>
-        <p className="mb-3.5 px-5 text-center text-[13px] font-semibold uppercase tracking-[0.16em] text-[#7FA3D1]">{trust.title}</p>
+        <p className="mb-3.5 px-5 text-center text-[12px] font-semibold uppercase tracking-[0.14em] text-[#8FB0DA]">{trust.title}</p>
         <div className="mx-auto max-w-site opacity-[.55] transition-opacity duration-500 [mask-image:linear-gradient(90deg,transparent,#000_14%,#000_86%,transparent)] hover:opacity-100">
           <Marquee duration={36} gap={0}>
             {trust.items.map((t) => (

@@ -6,7 +6,7 @@
 import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { countries } from '@/data/content';
-import { EASE, Reveal, SectionHeader } from '@/components/ui';
+import { EASE, Reveal, SectionHeader, Clock } from '@/components/ui';
 import { Globe } from '@/components/magicui/Globe';
 import { formatTime, hourIn, useNow } from '@/hooks/useClock';
 import { cn } from '@/lib/utils';
@@ -58,7 +58,7 @@ function Coverage({ now, selected }: { now: Date; selected: number }) {
     <div className="rounded-[2rem] bg-white p-6 shadow-soft sm:p-10">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <h3 className="font-display text-[24px] font-semibold tracking-[-0.03em] text-ink sm:text-[28px]">{countries.coverageTitle}</h3>
-        <p className="text-[14px] text-muted">{countries.coverageNote}</p>
+        <p className="text-[15px] text-muted">{countries.coverageNote}</p>
       </div>
 
       {/* rows: label column + 24h track; the "now" line overlays the track column */}
@@ -105,7 +105,7 @@ function Coverage({ now, selected }: { now: Date; selected: number }) {
           ))}
         </div>
       </div>
-      <p className="mt-6 text-[14px] text-muted sm:hidden">Now in the UK: <b className="tabular-nums text-ink">{formatTime(UK, now)}</b></p>
+      <p className="mt-6 text-[15px] text-muted sm:hidden">Now in the UK: <b className="tabular-nums text-ink">{formatTime(UK, now)}</b></p>
     </div>
   );
 }
@@ -137,9 +137,9 @@ export default function Countries() {
                     {sel === i && <motion.span layoutId="mkt" className="absolute inset-y-3 left-0 w-1 rounded-full bg-brand" transition={{ type: 'spring', stiffness: 400, damping: 34 }} />}
                     <span className="flex flex-col">
                       <span className={cn('font-display text-[clamp(1.4rem,2.2vw,1.75rem)] font-semibold tracking-[-0.03em]', sel === i ? 'text-ink' : 'text-ink/70')}>{m.name}</span>
-                      <span className="text-[14px] text-muted">{m.city}</span>
+                      <span className="text-[15px] text-muted">{m.city}</span>
                     </span>
-                    <span className={cn('font-display text-[clamp(1.4rem,2.2vw,1.75rem)] font-medium tabular-nums tracking-[-0.02em]', sel === i ? 'text-brand' : 'text-ink/60')}>{formatTime(m.tz, now)}</span>
+                    <span className={cn('font-display text-[clamp(1.4rem,2.2vw,1.75rem)] font-medium tabular-nums tracking-[-0.02em]', sel === i ? 'text-brand' : 'text-ink/60')}><Clock value={formatTime(m.tz, now)} /></span>
                   </button>
                 </li>
               ))}

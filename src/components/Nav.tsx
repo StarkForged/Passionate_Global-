@@ -4,7 +4,7 @@ import { Menu, X } from 'lucide-react';
 import clsx from 'clsx';
 import { nav } from '@/data/content';
 import { Button, EASE, Logo } from '@/components/ui';
-import { scrollToHash } from '@/lib/scroll';
+import { lockScroll, scrollToHash } from '@/lib/scroll';
 
 export default function Nav() {
   const [light, setLight] = useState(false);
@@ -34,7 +34,16 @@ export default function Nav() {
     return () => io.disconnect();
   }, []);
 
-  const go = (href: string) => (e: React.MouseEvent) => { e.preventDefault(); setOpen(false); scrollToHash(href); };
+  // mobile menu: lock the page behind it, close on Escape
+  useEffect(() => {
+    lockScroll(open);
+    if (!open) return;
+    const esc = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
+    addEventListener('keydown', esc);
+    return () => { removeEventListener('keydown', esc); lockScroll(false); };
+  }, [open]);
+
+  const go = (href: string) => (e: React.MouseEvent) => { e.preventDefault(); setOpen(false); lockScroll(false); scrollToHash(href); };
 
   return (
     <>

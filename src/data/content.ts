@@ -10,7 +10,6 @@ export const company = {
   // Source: the founder's visiting card (docs/references/visiting-card-back.png), Nov 2026.
   // The card lists one Indian number; if the client supplies a UK number, add it to `phones`.
   address: '301, Indraprastha Corporate, Prahlad Nagar, Ahmedabad, India – 380015',
-  addressLines: ['301, Indraprastha Corporate, Prahlad Nagar,', 'Ahmedabad, India – 380015'],
   city: 'Ahmedabad, India',
   phones: [
     { label: 'IN', value: '+91 90165 51051', href: 'tel:+919016551051' },

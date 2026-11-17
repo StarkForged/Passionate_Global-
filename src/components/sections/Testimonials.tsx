@@ -34,7 +34,7 @@ export default function Testimonials() {
           <Reveal delay={0.1}><p className="font-display text-[20px] font-medium tracking-[-0.02em] text-navy">{t.lead}</p></Reveal>
         </div>
         <Reveal delay={0.15}>
-          <p className="mx-auto mt-8 max-w-[880px] gap-12 text-[16px] leading-[1.75] text-muted md:columns-2">{t.body}</p>
+          <p className="mx-auto mt-6 max-w-[62ch] text-balance text-center text-[17px] leading-[1.75] text-muted">{t.body}</p>
         </Reveal>
 
         <Reveal className="mt-20">
@@ -67,7 +67,7 @@ export default function Testimonials() {
                     )}
                     {k < i && <span className="absolute inset-0 rounded-full bg-brand/40" />}
                   </span>
-                  <span className={cn('text-[14px] font-medium transition-colors', k === i ? 'text-ink' : 'text-muted group-hover:text-ink')}>{q.role}</span>
+                  <span className={cn('text-[15px] font-medium transition-colors', k === i ? 'text-ink' : 'text-muted group-hover:text-ink')}>{q.role}</span>
                 </button>
               ))}
             </div>
@@ -75,7 +75,7 @@ export default function Testimonials() {
         </Reveal>
 
         <div className="mt-24 text-center">
-          <p className="text-[13px] font-semibold uppercase tracking-[0.16em] text-brand">{t.valuesTitle}</p>
+          <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-brand">{t.valuesTitle}</p>
         </div>
       </div>
       <div className="mt-8 [mask-image:linear-gradient(90deg,transparent,#000_10%,#000_90%,transparent)]">

@@ -81,7 +81,7 @@ function Panel({ step }: { step: number }) {
           )}
         </AnimatePresence>
       </LayoutGroup>
-      <span className={cn('absolute bottom-6 left-7 text-[13px] font-semibold uppercase tracking-[0.16em] transition-colors duration-700', step === 1 ? 'text-sky' : 'text-brand')}>
+      <span className={cn('absolute bottom-6 left-7 text-[12px] font-semibold uppercase tracking-[0.14em] transition-colors duration-700', step === 1 ? 'text-sky' : 'text-brand')}>
         0{step + 1} / 03
       </span>
     </div>
@@ -99,7 +99,7 @@ function Story() {
         {blocks.map((b, i) => (
           <div key={b.label} className="flex min-h-[72vh] flex-col justify-center">
             <motion.div animate={{ opacity: step === i ? 1 : 0.18 }} transition={{ duration: 0.5, ease: EASE }}>
-              <p className="text-[13px] font-semibold uppercase tracking-[0.16em] text-brand">{b.label}</p>
+              <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-brand">{b.label}</p>
               <p className="mt-5 max-w-[22ch] font-display text-[clamp(2rem,2.8vw,2.5rem)] font-semibold leading-[1.15] tracking-[-0.035em] text-ink">{b.text}</p>
             </motion.div>
           </div>
@@ -119,7 +119,7 @@ function StoryStatic() {
           <div className={cn('grid aspect-[4/3] w-full place-items-center rounded-[2rem] shadow-soft', i === 1 ? 'bg-[radial-gradient(100%_90%_at_30%_10%,#0B3A7A_0%,#01152D_70%)]' : 'bg-[radial-gradient(90%_80%_at_30%_15%,#FFFFFF_0%,#E2EDFA_100%)]')}>
             {i < 2 ? <Hex tone={i === 0 ? 'blue' : 'white'} icon={i === 0 ? Target : Eye} size={130} /> : <Honeycomb size={66} />}
           </div>
-          <p className="mt-8 text-[13px] font-semibold uppercase tracking-[0.16em] text-brand">{b.label}</p>
+          <p className="mt-8 text-[12px] font-semibold uppercase tracking-[0.14em] text-brand">{b.label}</p>
           <p className="mt-4 font-display text-[clamp(1.6rem,6.4vw,2.25rem)] font-semibold leading-[1.18] tracking-[-0.035em] text-ink">{b.text}</p>
         </motion.div>
       ))}
@@ -137,7 +137,7 @@ export default function Purpose() {
 
       <div className="container-site mt-24 lg:mt-16">
         <motion.p initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.7, ease: EASE }}
-          className="text-center text-[13px] font-semibold uppercase tracking-[0.16em] text-brand">{purpose.coreValuesLabel}</motion.p>
+          className="text-center text-[12px] font-semibold uppercase tracking-[0.14em] text-brand">{purpose.coreValuesLabel}</motion.p>
         <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.25 }} transition={{ duration: 0.8, ease: EASE }}
           className="mt-10 lg:mt-6">
           <ValuesWheel ring={lg} />

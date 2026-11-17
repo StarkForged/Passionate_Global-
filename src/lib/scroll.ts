@@ -20,6 +20,12 @@ export function initSmoothScroll() {
   return lenis;
 }
 
+/** Lock / unlock page scrolling (mobile menu). Works with and without Lenis. */
+export function lockScroll(lock: boolean) {
+  if (lock) lenis?.stop(); else lenis?.start();
+  document.documentElement.style.overflow = lock ? 'hidden' : '';
+}
+
 export function scrollToHash(hash: string) {
   const el = document.querySelector(hash) as HTMLElement | null;
   if (!el) return;

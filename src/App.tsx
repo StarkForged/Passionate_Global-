@@ -23,6 +23,7 @@ export default function App() {
     const refresh = () => ScrollTrigger.refresh();
     const t = setTimeout(refresh, 1500);
     addEventListener('load', refresh);
+    document.fonts?.ready.then(refresh);
     return () => { clearTimeout(t); removeEventListener('load', refresh); };
   }, []);
   return (

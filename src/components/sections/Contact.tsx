@@ -28,21 +28,23 @@ export function CtaBand() {
   );
 }
 
-function Field({ id, label, type = 'text', required, autoComplete, textarea, value, onChange, error }: {
-  id: string; label: string; type?: string; required?: boolean; autoComplete?: string; textarea?: boolean; value: string; onChange: (v: string) => void; error?: boolean;
+function Field({ id, label, type = 'text', required, autoComplete, textarea, value, onChange, error, message }: {
+  id: string; label: string; type?: string; required?: boolean; autoComplete?: string; textarea?: boolean; value: string; onChange: (v: string) => void; error?: boolean; message?: string;
 }) {
   const cls = clsx('peer w-full rounded-2xl border bg-[#F7FAFD] px-4 pb-2.5 pt-6 text-[15px] text-ink outline-none transition focus:bg-white focus:ring-4',
-    error ? 'border-red-400 focus:ring-red-100' : 'border-navy/10 focus:border-brand focus:ring-brand/10');
+    error ? 'border-red-500 focus:ring-red-100' : 'border-navy/10 focus:border-brand focus:ring-brand/10');
   return (
     <label htmlFor={id} className="relative block">
       {textarea ? (
         <textarea id={id} rows={4} placeholder=" " value={value} onChange={(e) => onChange(e.target.value)} className={clsx(cls, 'resize-none')} />
       ) : (
-        <input id={id} type={type} placeholder=" " required={required} autoComplete={autoComplete} value={value} onChange={(e) => onChange(e.target.value)} className={cls} />
+        <input id={id} type={type} placeholder=" " required={required} autoComplete={autoComplete} value={value} onChange={(e) => onChange(e.target.value)} className={cls}
+          aria-invalid={error || undefined} aria-describedby={error && message ? `${id}-err` : undefined} />
       )}
       <span className="pointer-events-none absolute left-4 top-[18px] text-[15px] text-muted transition-all peer-focus:top-2 peer-focus:text-[11.5px] peer-focus:font-semibold peer-focus:text-brand peer-[:not(:placeholder-shown)]:top-2 peer-[:not(:placeholder-shown)]:text-[11.5px] peer-[:not(:placeholder-shown)]:font-semibold">
         {label}{required && ' *'}
       </span>
+      {error && message && <motion.span id={`${id}-err`} initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} className="mt-1.5 block px-1 text-[13px] font-medium text-red-600">{message}</motion.span>}
     </label>
   );
 }
@@ -68,7 +70,7 @@ export default function Contact() {
   };
 
   const info = [
-    { icon: MapPin, label: 'Office Address', body: <address className="not-italic">{company.addressLines.map((l) => <span key={l} className="block">{l}</span>)}</address> },
+    { icon: MapPin, label: 'Office Address', body: <address className="text-balance not-italic">{company.address.replace('Prahlad Nagar', 'Prahlad Nagar').replace(' – ', ' – ')}</address> },
     { icon: Phone, label: 'Phone', body: <>{company.phones.map((p) => <a key={p.href} href={p.href} className="block tabular-nums hover:text-brand">{company.phones.length > 1 && `${p.label} `}{p.value}</a>)}</> },
     { icon: Mail, label: 'Email', body: <a href={`mailto:${company.email}`} className="break-words hover:text-brand">{company.email}</a> },
     { icon: Globe2, label: 'Website', body: <a href={company.website.href} className="hover:text-brand">{company.website.label}</a> },
@@ -128,9 +130,9 @@ export default function Contact() {
                     </div>
                   </fieldset>
                   <div className="grid gap-4 sm:grid-cols-2">
-                    <Field id="name" label="Full name" required autoComplete="name" value={f.name} onChange={set('name')} error={errors.name} />
-                    <Field id="company" label="Company" required autoComplete="organization" value={f.company} onChange={set('company')} error={errors.company} />
-                    <Field id="email" label="Work email" type="email" required autoComplete="email" value={f.email} onChange={set('email')} error={errors.email} />
+                    <Field id="name" label="Full name" required autoComplete="name" value={f.name} onChange={set('name')} error={errors.name} message="Please add your name." />
+                    <Field id="company" label="Company" required autoComplete="organization" value={f.company} onChange={set('company')} error={errors.company} message="Please add your company." />
+                    <Field id="email" label="Work email" type="email" required autoComplete="email" value={f.email} onChange={set('email')} error={errors.email} message="Please enter a valid work email." />
                     <Field id="phone" label="Phone" type="tel" autoComplete="tel" value={f.phone} onChange={set('phone')} />
                   </div>
                   <div className="grid gap-4 sm:grid-cols-2">
@@ -155,7 +157,7 @@ export default function Contact() {
                     </fieldset>
                   </div>
                   <Field id="message" label="How can we help?" textarea value={f.message} onChange={set('message')} />
-                  {Object.values(errors).some(Boolean) && <p className="text-[14px] text-red-500">Please add your name, company and a valid work email so we can reply.</p>}
+                  {Object.values(errors).some(Boolean) && <p role="alert" className="text-[14px] text-red-600">Please add your name, company and a valid work email so we can reply.</p>}
                   <Button type="submit" size="lg" className="w-full">Send enquiry</Button>
                 </motion.form>
               ) : (

@@ -7,7 +7,7 @@ import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } fro
 import { AnimatePresence, motion, useAnimationFrame, useInView, useMotionValue, useScroll, useTransform, type MotionValue } from 'framer-motion';
 import { Check, UserRound, Inbox, CircleCheck } from 'lucide-react';
 import { services } from '@/data/content';
-import { EASE, Reveal, SectionHeader } from '@/components/ui';
+import { Clock, EASE, Reveal, SectionHeader } from '@/components/ui';
 import { formatTime, hourIn, useNow } from '@/hooks/useClock';
 import { useMedia, usePinnable } from '@/hooks/useMedia';
 import { prefersReducedMotion } from '@/lib/scroll';
@@ -259,8 +259,8 @@ function OohArt({ compact = false }: { compact?: boolean }) {
       <div className="absolute flex items-center justify-center text-center" style={{ left: cx - 100, top: cy - 100, width: 200, height: 200 }}>
         <AnimatePresence initial={false}>
           <motion.div key={active} className="absolute inset-0 flex flex-col items-center justify-center" initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.03 }} transition={{ duration: 0.5, ease: EASE }}>
-            <span className="text-[13px] font-semibold uppercase tracking-[0.16em]" style={{ color: active === 0 ? '#9CCBFF' : ZONE_COLORS[active] }}>{z.name}</span>
-            <span className="mt-1.5 font-display text-[44px] font-semibold tabular-nums leading-none tracking-[-0.03em] text-white">{formatTime(z.tz, now)}</span>
+            <span className="text-[12px] font-semibold uppercase tracking-[0.14em]" style={{ color: active === 0 ? '#9CCBFF' : ZONE_COLORS[active] }}>{z.name}</span>
+            <span className="mt-1.5 font-display text-[44px] font-semibold tabular-nums leading-none tracking-[-0.03em] text-white"><Clock value={formatTime(z.tz, now)} /></span>
             <span className={cn('mt-2.5 max-w-[17ch] text-balance text-[14px] font-medium leading-snug', isOffice(zh) ? 'text-[#B9CBE4]' : 'text-white')}>{isOffice(zh) ? ooh.statusOffice : ooh.statusOoh}</span>
           </motion.div>
         </AnimatePresence>
@@ -363,13 +363,13 @@ function Card({ i, scrollY, geo, stacked }: { i: number; scrollY: MotionValue<nu
   return (
     <motion.article style={stacked ? { scale, transformOrigin: 'top center' } : undefined}
       className={cn('relative grid overflow-hidden rounded-[2rem] shadow-lift lg:h-[580px] lg:grid-cols-[45fr_55fr]', t.card)}>
-      <div className="flex flex-col p-8 sm:p-12 lg:order-1">
+      <div className="flex flex-col p-8 sm:p-11 lg:order-1 lg:p-10 xl:p-12">
         <span className={cn('font-display text-[15px] font-semibold tabular-nums tracking-[0.04em]', t.idx)}>0{i + 1}</span>
         {'lead' in s && s.lead && <p className={cn('mt-6 font-display text-[19px] font-medium tracking-[-0.015em]', t.idx)}>{s.lead}</p>}
         <h3 className={cn('font-display text-[clamp(2rem,3.4vw,2.9rem)] font-semibold leading-[1.04] tracking-[-0.04em]', 'lead' in s && s.lead ? 'mt-3' : 'mt-6', t.title)}>{s.title.split(' ').map((w, k) => <span key={k} className={w.includes('-') ? 'whitespace-nowrap' : undefined}>{k > 0 && ' '}{w}</span>)}</h3>
         <p className={cn('mt-5 text-[17px] leading-[1.7]', t.body)}>{s.body}</p>
-        <p className={cn('mt-auto pt-8 text-[13px] font-semibold uppercase tracking-[0.16em]', t.idx)}>Services include</p>
-        <ul className="mt-4 grid gap-x-6 gap-y-3 sm:grid-cols-2">
+        <p className={cn('mt-auto pt-8 text-[12px] font-semibold uppercase tracking-[0.14em]', t.idx)}>Services include</p>
+        <ul className="mt-4 grid gap-x-5 gap-y-3 sm:grid-cols-2">
           {s.list.map((x) => (
             <li key={x} className={cn('flex items-start gap-2.5 text-[15.5px] font-medium leading-snug', t.item)}>
               <span className={cn('mt-[1px] grid h-5 w-5 shrink-0 place-items-center rounded-full', t.check)}><Check className="h-3 w-3" strokeWidth={3} /></span>{x}

@@ -1,5 +1,6 @@
 """Viewport frames down the whole page.  usage: python scripts/qa-frames.py <width> <prefix> [#section]
 With a section id, only that section is captured (in viewport-height steps) — faster for iteration.
+NOGL=1 disables WebGL emulation (more faithful CSS animation captures; hero planet blank).
 Frames go to $QA_OUT (default: <system temp>/pg-qa)."""
 import asyncio, os, shutil, sys, tempfile, glob
 from playwright.async_api import async_playwright
@@ -18,7 +19,10 @@ def chrome():
 
 async def main():
     async with async_playwright() as p:
-        b = await p.chromium.launch(executable_path=chrome(), args=['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'])
+        # NOGL=1: skip SwiftShader WebGL (hero planet won't render). Use it for the other sections: the emulated
+        # WebGL starves the compositor, so CSS transitions / WAAPI animations can freeze mid-way in captures.
+        gl = [] if os.environ.get('NOGL') else ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist']
+        b = await p.chromium.launch(executable_path=chrome(), args=gl)
         H = 900 if W > 800 else 844
         pg = await b.new_page(viewport={'width': W, 'height': H})
         errs = []
