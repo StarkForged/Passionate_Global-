@@ -7,18 +7,22 @@
 export const company = {
   name: 'Passionate Global',
   tagline: 'Your Trusted Global Partner',
-  // NOTE: contact details taken from the old site (passionatestaffing.com) — confirm with client.
-  address: 'B-207, Dev Aurum Commercial Complex, Near Deer Circle, Prahladnagar, Ahmedabad, Gujarat 380015, India',
+  // Source: the founder's visiting card (docs/references/visiting-card-back.png), Nov 2026.
+  // The card lists one Indian number; if the client supplies a UK number, add it to `phones`.
+  address: '301, Indraprastha Corporate, Prahlad Nagar, Ahmedabad, India – 380015',
+  addressLines: ['301, Indraprastha Corporate, Prahlad Nagar,', 'Ahmedabad, India – 380015'],
+  city: 'Ahmedabad, India',
   phones: [
-    { label: 'UK', value: '+44 203 286 1122', href: 'tel:+442032861122' },
-    { label: 'IN', value: '+91 79 4600 4690', href: 'tel:+917946004690' },
+    { label: 'IN', value: '+91 90165 51051', href: 'tel:+919016551051' },
   ],
-  email: 'info@passionatestaffing.com',
-  website: { label: 'www.passionatestaffing.com', href: 'https://www.passionatestaffing.com/' },
+  email: 'hitesh@passionateglobal.co.in',
+  website: { label: 'www.passionateglobal.co.in', href: 'https://www.passionateglobal.co.in' },
+  // TODO client: these still point to the old company pages; replace with Passionate Global profiles.
+  // An empty value hides the icon (the old Facebook page was removed with the old contact details).
   socials: {
     linkedin: 'https://www.linkedin.com/company/passionate-staffing-solutions-private-limited',
     instagram: 'https://www.instagram.com/passionate_staffing_family/',
-    facebook: 'https://www.facebook.com/PassionateStaffingSolutions',
+    facebook: '',
   },
 };
 

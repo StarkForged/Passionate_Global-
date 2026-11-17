@@ -68,9 +68,9 @@ export default function Contact() {
   };
 
   const info = [
-    { icon: MapPin, label: 'Office Address', body: <>{company.address}</> },
-    { icon: Phone, label: 'Phone', body: <>{company.phones.map((p) => <a key={p.href} href={p.href} className="block hover:text-brand">{p.label} {p.value}</a>)}</> },
-    { icon: Mail, label: 'Email', body: <a href={`mailto:${company.email}`} className="hover:text-brand">{company.email}</a> },
+    { icon: MapPin, label: 'Office Address', body: <address className="not-italic">{company.addressLines.map((l) => <span key={l} className="block">{l}</span>)}</address> },
+    { icon: Phone, label: 'Phone', body: <>{company.phones.map((p) => <a key={p.href} href={p.href} className="block tabular-nums hover:text-brand">{company.phones.length > 1 && `${p.label} `}{p.value}</a>)}</> },
+    { icon: Mail, label: 'Email', body: <a href={`mailto:${company.email}`} className="break-words hover:text-brand">{company.email}</a> },
     { icon: Globe2, label: 'Website', body: <a href={company.website.href} className="hover:text-brand">{company.website.label}</a> },
   ];
 

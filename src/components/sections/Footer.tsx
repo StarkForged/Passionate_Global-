@@ -15,7 +15,7 @@ export default function Footer() {
             <Logo light />
             <p className="mt-6 max-w-[36ch] text-[15px] leading-relaxed">{company.tagline}. Dedicated offshore teams that help recruitment businesses streamline operations and scale with confidence.</p>
             <div className="mt-7 flex gap-2.5">
-              {[[Linkedin, company.socials.linkedin, 'LinkedIn'], [Instagram, company.socials.instagram, 'Instagram'], [Facebook, company.socials.facebook, 'Facebook']].map(([Icon, href, l]: any) => (
+              {([[Linkedin, company.socials.linkedin, 'LinkedIn'], [Instagram, company.socials.instagram, 'Instagram'], [Facebook, company.socials.facebook, 'Facebook']] as const).filter(([, href]) => href).map(([Icon, href, l]) => (
                 <a key={l} href={href} aria-label={l} className="grid h-11 w-11 place-items-center rounded-xl border border-white/10 bg-white/[0.04] text-white/80 transition hover:border-brand hover:bg-brand hover:text-white"><Icon className="h-[18px] w-[18px]" /></a>
               ))}
             </div>
@@ -31,9 +31,10 @@ export default function Footer() {
           <div>
             <p className="mb-5 text-[13px] font-semibold uppercase tracking-[0.14em] text-white">Contact</p>
             <ul className="space-y-3 text-[15px]">
-              {company.phones.map((p) => <li key={p.href}><a href={p.href} className="tabular-nums transition hover:text-white">{p.label} {p.value}</a></li>)}
-              <li><a href={`mailto:${company.email}`} className="transition hover:text-white">{company.email}</a></li>
-              <li>Ahmedabad, Gujarat, India</li>
+              {company.phones.map((p) => <li key={p.href}><a href={p.href} className="tabular-nums transition hover:text-white">{company.phones.length > 1 && `${p.label} `}{p.value}</a></li>)}
+              <li><a href={`mailto:${company.email}`} className="break-words transition hover:text-white">{company.email}</a></li>
+              <li><a href={company.website.href} className="transition hover:text-white">{company.website.label}</a></li>
+              <li>{company.city}</li>
             </ul>
           </div>
         </div>
