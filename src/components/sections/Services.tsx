@@ -3,7 +3,7 @@
  * and dims as the next slides over it). One calm illustration per service; no invented data
  * (skeleton bars instead of names / amounts).
  */
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react';
 import { AnimatePresence, motion, useAnimationFrame, useInView, useMotionValue, useScroll, useTransform, type MotionValue } from 'framer-motion';
 import { Check, UserRound, Inbox, CircleCheck } from 'lucide-react';
 import { services } from '@/data/content';
@@ -161,32 +161,111 @@ function FinanceArt() {
   );
 }
 
-/* ---------- 3. Out-of-hours: 24h ring, 17:00–09:00 highlighted, live UK time ---------- */
-function OohArt() {
+/* ---------- 3. Out-of-hours: 24h local-time dial with live UK / USA / Australia markers ----------
+ * Each zone sits on the dial at its own current local hour (Intl time zones, so DST is always right).
+ * The centre cycles through the zones every 3s; the 17:00–09:00 arc is re-drawn in the colour of the
+ * zone in the centre, so it reads as "that zone's out-of-hours". Clicking a legend chip pins a zone. */
+const ooh = services.items[2];
+const ZONES = ooh.zones ?? [];
+const ZONE_COLORS = ['#FFFFFF', '#5AA5FF', '#8B7BFF'];
+const ZONE_ARC_END = ['#7DB8FF', '#1679E0', '#5B4FD6']; // arc gradient: zone colour -> deeper tone
+const ZONE_EVERY = 3000;
+// tiny shared store so the (scaled) dial and the (unscaled, phone) legend agree on the pinned zone
+const zoneStore = { pinned: null as number | null, subs: new Set<() => void>() };
+const pinZone = (i: number | null) => { zoneStore.pinned = i; zoneStore.subs.forEach((f) => f()); };
+const usePinnedZone = () => useSyncExternalStore((f) => { zoneStore.subs.add(f); return () => { zoneStore.subs.delete(f); }; }, () => zoneStore.pinned);
+
+/** Index of the zone shown in the centre: pinned, else auto-cycling (UK only with reduced motion). */
+function useActiveZone(now: Date) {
+  const pinned = usePinnedZone();
+  if (pinned !== null) return pinned;
+  if (prefersReducedMotion()) return 0;
+  return Math.floor((now.getTime() - T0) / ZONE_EVERY) % ZONES.length;
+}
+const OFFICE = ooh.officeHours ?? { from: 9, to: 17 };
+const isOffice = (h: number) => h >= OFFICE.from && h < OFFICE.to;
+
+function ZoneLegend({ now, active, className }: { now: Date; active: number; className?: string }) {
+  return (
+    <div className={cn('flex flex-wrap justify-center gap-2', className)} onMouseLeave={() => pinZone(null)}>
+      {ZONES.map((z, i) => (
+        <button key={z.tz} type="button" onClick={() => pinZone(zoneStore.pinned === i ? null : i)} aria-pressed={active === i}
+          className={cn('flex min-h-[40px] items-center gap-2 rounded-full border px-3.5 text-[14px] font-semibold tabular-nums transition-colors duration-300',
+            active === i ? 'border-white/25 bg-white/[0.12] text-white' : 'border-white/10 bg-white/[0.04] text-[#B9CBE4] hover:bg-white/[0.08]')}>
+          <span className="h-2.5 w-2.5 rounded-full" style={{ background: ZONE_COLORS[i] }} />
+          {z.short} <span className="text-white">{formatTime(z.tz, now)}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/** Phones: legend under the scaled dial, at full size. */
+function OohLegend() {
+  const now = useNow(1000);
+  const active = useActiveZone(now);
+  return <ZoneLegend now={now} active={active} className="px-4 pb-6" />;
+}
+
+function OohArt({ compact = false }: { compact?: boolean }) {
   const now = useNow(1000);
   const [ref, on] = usePlay<HTMLDivElement>();
-  const R = 128, C = 2 * Math.PI * R;
+  const active = useActiveZone(now);
+  const W = compact ? 340 : 440, cx = W / 2, cy = compact ? 170 : 200, R = compact ? 132 : 126;
   const ang = (h: number) => (h / 24) * 360 - 90; // 00:00 at the top
-  const pt = (h: number, r: number) => [160 + r * Math.cos((ang(h) * Math.PI) / 180), 160 + r * Math.sin((ang(h) * Math.PI) / 180)];
-  const uk = hourIn('Europe/London', now);
-  const [dx, dy] = pt(uk, R);
-  const span = 16 / 24; // 17:00 → 09:00
+  const pt = (h: number, r: number) => [cx + r * Math.cos((ang(h) * Math.PI) / 180), cy + r * Math.sin((ang(h) * Math.PI) / 180)] as const;
+  const [ax, ay] = pt(17, R), [bx, by] = pt(9, R);
+  const arc = `M ${ax} ${ay} A ${R} ${R} 0 1 1 ${bx} ${by}`; // 17:00 → 09:00 clockwise (16h)
+  const z = ZONES[active], zh = hourIn(z.tz, now);
   return (
-    <div ref={ref} className="relative h-[340px] w-[340px]">
-      <svg viewBox="0 0 320 320" className="absolute inset-0 h-full w-full" aria-hidden>
-        <circle cx="160" cy="160" r={R} fill="none" stroke="rgba(255,255,255,.08)" strokeWidth="18" />
-        <motion.circle cx="160" cy="160" r={R} fill="none" stroke="url(#oog)" strokeWidth="18" strokeLinecap="round"
-          transform={`rotate(${ang(17)} 160 160)`} strokeDasharray={`${C * span} ${C}`} initial={{ strokeDashoffset: C * span }} animate={on ? { strokeDashoffset: 0 } : undefined} transition={{ duration: 2, ease: EASE }} />
-        <defs><linearGradient id="oog" x1="0" y1="0" x2="1" y2="1"><stop stopColor="#5AA5FF" /><stop offset="1" stopColor="#1679E0" /></linearGradient></defs>
-        {[0, 6, 12, 18].map((h) => { const [x, y] = pt(h, R - 34); return <text key={h} x={x} y={y + 5} textAnchor="middle" fill="rgba(185,203,228,.8)" fontSize="13" fontWeight="600">{String(h).padStart(2, '0')}</text>; })}
-        <circle cx={dx} cy={dy} r="9" fill="#fff" />
-        <circle cx={dx} cy={dy} r="15" fill="none" stroke="rgba(255,255,255,.35)" strokeWidth="2" />
+    <div ref={ref} className="relative" style={{ width: W, height: compact ? 340 : 470 }}>
+      <svg viewBox={`0 0 ${W} ${compact ? 340 : 400}`} className="absolute left-0 top-0 w-full" style={{ height: compact ? 340 : 400 }} aria-hidden>
+        <defs>
+          {ZONE_COLORS.map((c, i) => (
+            <linearGradient key={i} id={`ooh${i}`} x1="0" y1="0" x2="1" y2="1"><stop stopColor={c} /><stop offset="1" stopColor={ZONE_ARC_END[i]} /></linearGradient>
+          ))}
+        </defs>
+        <circle cx={cx} cy={cy} r={R} fill="none" stroke="rgba(255,255,255,.08)" strokeWidth="16" />
+        {Array.from({ length: 24 }).map((_, h) => {
+          const [x1, y1] = pt(h, R + 13), [x2, y2] = pt(h, R + (h % 6 ? 17 : 21));
+          return <line key={h} x1={x1} y1={y1} x2={x2} y2={y2} stroke={h % 6 ? 'rgba(185,203,228,.25)' : 'rgba(185,203,228,.55)'} strokeWidth="1.5" strokeLinecap="round" />;
+        })}
+        <motion.path key={active} d={arc} fill="none" stroke={`url(#ooh${active})`} strokeWidth="16" strokeLinecap="round"
+          initial={{ pathLength: on && !prefersReducedMotion() ? 0 : 1, opacity: 0.4 }} animate={on ? { pathLength: 1, opacity: 1 } : undefined} transition={{ duration: 1.1, ease: EASE }} />
+        {[0, 6, 12, 18].map((h) => { const [x, y] = pt(h, R - 26); return <text key={h} x={x} y={y + 5} textAnchor="middle" fill="rgba(185,203,228,.85)" fontSize="13" fontWeight="600">{String(h).padStart(2, '0')}</text>; })}
+        {ZONES.map((zz, i) => {
+          const [x, y] = pt(hourIn(zz.tz, now), R);
+          return (
+            <g key={zz.tz}>
+              {i === active && !prefersReducedMotion() && <circle cx={x} cy={y} r="9" fill="none" stroke={ZONE_COLORS[i]} strokeWidth="2" className="ooh-ping" style={{ transformOrigin: `${x}px ${y}px` }} />}
+              <circle cx={x} cy={y} r="13" fill="#01152D" fillOpacity=".55" />
+              <circle cx={x} cy={y} r={i === active ? 8 : 6.5} fill={ZONE_COLORS[i]} stroke="#01152D" strokeWidth="2.5" />
+            </g>
+          );
+        })}
       </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-        <span className="text-[13px] font-semibold uppercase tracking-[0.16em] text-sky">UK time</span>
-        <span className="mt-1 font-display text-[40px] font-semibold tabular-nums leading-none tracking-[-0.03em] text-white">{formatTime('Europe/London', now)}</span>
-        <span className="mt-2 text-[13px] text-[#B9CBE4]">17:00 – 09:00 covered</span>
+      {/* marker pills, pushed radially outside the ring */}
+      {!compact && ZONES.map((zz, i) => {
+        const [x, y] = pt(hourIn(zz.tz, now), R + 50);
+        return (
+          <span key={zz.tz} className={cn('absolute flex items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-1 text-[13px] font-semibold tabular-nums leading-4 transition-colors duration-300',
+            i === active ? 'border-white/25 bg-[#0B2547] text-white' : 'border-white/10 bg-[#071A33] text-[#B9CBE4]')}
+            style={{ left: x, top: y, transform: 'translate(-50%, -50%)' }}>
+            <span style={{ color: ZONE_COLORS[i] }}>{zz.short}</span>{formatTime(zz.tz, now)}
+          </span>
+        );
+      })}
+      {/* centre: crossfades between zones */}
+      <div className="absolute flex items-center justify-center text-center" style={{ left: cx - 100, top: cy - 100, width: 200, height: 200 }}>
+        <AnimatePresence initial={false}>
+          <motion.div key={active} className="absolute inset-0 flex flex-col items-center justify-center" initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.03 }} transition={{ duration: 0.5, ease: EASE }}>
+            <span className="text-[13px] font-semibold uppercase tracking-[0.16em]" style={{ color: active === 0 ? '#9CCBFF' : ZONE_COLORS[active] }}>{z.name}</span>
+            <span className="mt-1.5 font-display text-[44px] font-semibold tabular-nums leading-none tracking-[-0.03em] text-white">{formatTime(z.tz, now)}</span>
+            <span className={cn('mt-2.5 max-w-[17ch] text-balance text-[14px] font-medium leading-snug', isOffice(zh) ? 'text-[#B9CBE4]' : 'text-white')}>{isOffice(zh) ? ooh.statusOffice : ooh.statusOoh}</span>
+          </motion.div>
+        </AnimatePresence>
       </div>
+      {!compact && <ZoneLegend now={now} active={active} className="absolute inset-x-0 bottom-0" />}
     </div>
   );
 }
@@ -240,16 +319,17 @@ function BusinessArt() {
   );
 }
 
-const arts: ((compact: boolean) => ReactNode)[] = [(c) => <RecruitmentArt compact={c} />, () => <FinanceArt />, () => <OohArt />, () => <BusinessArt />];
-const artSize = [[520, 380], [420, 440], [340, 340], [420, 420]];
+const arts: ((compact: boolean) => ReactNode)[] = [(c) => <RecruitmentArt compact={c} />, () => <FinanceArt />, (c) => <OohArt compact={c} />, () => <BusinessArt />];
+const artSize = [[520, 380], [420, 440], [440, 470], [420, 420]];
+const artSizeCompact = [[520, 380], [420, 440], [340, 340], [420, 420]];
 
 /** Scales a fixed-size illustration to fit its panel. The art is taken out of flow so its
  *  fixed width never widens the card; on small screens the panel height follows the scale. */
 function Fit({ i }: { i: number }) {
   const ref = useRef<HTMLDivElement>(null);
-  const [w, h] = artSize[i];
-  const [s, setS] = useState(1);
   const compact = useMedia('(max-width: 639px)');
+  const [w, h] = (compact ? artSizeCompact : artSize)[i];
+  const [s, setS] = useState(1);
   useEffect(() => {
     const el = ref.current; if (!el) return;
     const lg = matchMedia('(min-width: 1024px)');
@@ -262,6 +342,7 @@ function Fit({ i }: { i: number }) {
         <div className="absolute left-1/2 top-1/2" style={{ width: w, height: h, transform: `translate(-50%, -50%) scale(${s})` }}>{arts[i](compact)}</div>
       </div>
       {compact && i === 0 && <StageChips />}
+      {compact && i === 2 && <OohLegend />}
     </div>
   );
 }
@@ -285,7 +366,7 @@ function Card({ i, scrollY, geo, stacked }: { i: number; scrollY: MotionValue<nu
       <div className="flex flex-col p-8 sm:p-12 lg:order-1">
         <span className={cn('font-display text-[15px] font-semibold tabular-nums tracking-[0.04em]', t.idx)}>0{i + 1}</span>
         {'lead' in s && s.lead && <p className={cn('mt-6 font-display text-[19px] font-medium tracking-[-0.015em]', t.idx)}>{s.lead}</p>}
-        <h3 className={cn('font-display text-[clamp(2rem,3.4vw,2.9rem)] font-semibold leading-[1.04] tracking-[-0.04em]', 'lead' in s && s.lead ? 'mt-3' : 'mt-6', t.title)}>{s.title}</h3>
+        <h3 className={cn('font-display text-[clamp(2rem,3.4vw,2.9rem)] font-semibold leading-[1.04] tracking-[-0.04em]', 'lead' in s && s.lead ? 'mt-3' : 'mt-6', t.title)}>{s.title.split(' ').map((w, k) => <span key={k} className={w.includes('-') ? 'whitespace-nowrap' : undefined}>{k > 0 && ' '}{w}</span>)}</h3>
         <p className={cn('mt-5 text-[17px] leading-[1.7]', t.body)}>{s.body}</p>
         <p className={cn('mt-auto pt-8 text-[13px] font-semibold uppercase tracking-[0.16em]', t.idx)}>Services include</p>
         <ul className="mt-4 grid gap-x-6 gap-y-3 sm:grid-cols-2">

@@ -118,6 +118,15 @@ export const services = {
       lead: "Business doesn't stop at 5 pm and neither do we.",
       body: 'Our dedicated out-of-hours teams provide reliable support beyond standard working hours, helping your business maintain continuity, responsiveness and exceptional service across different time zones.',
       list: ['Out-of-Hours Recruitment Support', 'Overnight Administration', 'Booking Co-ordinators', 'Customer Service', 'Emergency Shift Support'],
+      // Live time zones on the 24h dial (client round 1). IANA zones, so DST is always correct.
+      zones: [
+        { short: 'UK', name: 'UK time', tz: 'Europe/London' },
+        { short: 'USA', name: 'USA time', tz: 'America/New_York' },
+        { short: 'AUS', name: 'Australia time', tz: 'Australia/Sydney' },
+      ],
+      officeHours: { from: 9, to: 17 }, // local hours; outside this the zone is "out of hours"
+      statusOffice: 'Office hours',
+      statusOoh: "Out of hours, we've got you covered",
     },
     {
       id: 'business',

@@ -37,6 +37,8 @@
 @keyframes ping-soft { 0% { transform: scale(1); opacity: .9; } 100% { transform: scale(1.9); opacity: 0; } }
 @keyframes sweep { 0% { background-position: 100% 0; } 55%, 100% { background-position: 0% 0; } }
 @keyframes spin-slow { to { transform: rotate(360deg); } }
+.ooh-ping { animation: ooh-ping 1.6s cubic-bezier(.22,1,.36,1) infinite; }
+@keyframes ooh-ping { 0% { transform: scale(1); opacity: .9; } 100% { transform: scale(2.4); opacity: 0; } }
 
 /* ---- Ported Magic UI / Aceternity primitives ---- */
 /* ring mask: paints only the element's border box minus its padding box */
