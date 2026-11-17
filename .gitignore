@@ -65,3 +65,6 @@ __pycache__/
 Thumbs.db
 desktop.ini
 ehthumbs.db
+
+# ---------- Original photos (sources for scripts/optimise-images.py; ID-card PDFs contain personal data) ----------
+assets-src/

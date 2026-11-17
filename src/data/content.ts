@@ -206,7 +206,9 @@ export const team = {
     name: 'Hitesh Vaishnav',
     role: 'Founder & CEO',
     initials: 'HV',
-    photo: '', // e.g. 'img/team/hitesh-vaishnav.jpg'
+    // Photos: originals in assets-src/team/, run `python scripts/optimise-images.py`, then set the .webp path here.
+    // `photoFit: 'cutout'` = transparent cut-out standing on the brand gradient; else `photoPos` is the CSS object-position.
+    photo: 'img/team/hitesh-vaishnav.webp', photoFit: 'cutout' as const, photoPos: '50% 100%',
     tenure: '14+ years',
     bio: [
       'With over 14 years of experience supporting businesses across international markets, Hitesh Vaishnav founded Passionate Global with a vision to redefine outsourcing through trust, ownership, and long-term partnerships.',
@@ -217,6 +219,7 @@ export const team = {
   },
   members: [
     {
+      // TODO photo: the supplied ID-card PDF is corrupt (blank image); needs a re-export
       name: 'Heena Vaishnav', role: 'Operations Manager', initials: 'HV', photo: '', tenure: '7+ years',
       bio: [
         'Heena Vaishnav is an experienced Operations Manager with over seven years in recruitment outsourcing. She began her career in the banking sector, where she built a strong foundation in customer service and relationship management before transitioning into recruitment.',
@@ -224,6 +227,7 @@ export const team = {
       ],
     },
     {
+      // TODO photo: the supplied ID-card PDF is corrupt (blank image); needs a re-export
       name: 'Dixita Rajput', role: 'Compliance Manager', initials: 'DR', photo: '', tenure: '6+ years',
       bio: [
         'Dixita Rajput has been an integral part of the organisation for over six years, progressing from a Junior Compliance Officer to Compliance Manager through her dedication, exceptional work ethic, and commitment to excellence.',
@@ -232,6 +236,7 @@ export const team = {
     },
     {
       // NOTE: docx mixes "her"/"he" — written as "his"; confirm with client.
+      // TODO photo: the supplied ID-card PDF is corrupt (blank image); needs a re-export
       name: 'Anand Malhotra', role: 'Recruitment Manager', initials: 'AM', photo: '', tenure: 'Since 2023',
       bio: [
         'Anand started his career in the US IT sector as a recruiter. He joined us as a trainee recruiter in 2023 and has been an integral part of the team ever since.',
@@ -240,6 +245,9 @@ export const team = {
     },
   ],
 };
+
+/** Gallery photo: WebP path (from scripts/optimise-images.py), alt text, CSS object-position for the card crop. */
+export type Photo = { src: string; alt: string; pos?: string };
 
 export const life = {
   eyebrow: 'Life at Passionate Global',
@@ -252,15 +260,30 @@ export const life = {
   more: 'Life at Passionate Global is about building connections, celebrating milestones and creating memorable experiences together. From team-building activities and employee recognition programmes to festive celebrations, training sessions and company events, we believe a positive workplace creates stronger teams and better outcomes for our clients.',
   galleryTitle: 'Moments That Define Our Culture',
   galleryIntro: 'Explore our gallery to see the people, celebrations and experiences that make Passionate Global a great place to work.',
-  // Add photos: put files in public/img/gallery/ and list them in `photos`.
+  // Photos: originals in assets-src/gallery/, run `python scripts/optimise-images.py`, then list the .webp files
+  // here with alt text and an object-position (`pos`) that keeps faces inside the card crop.
   gallery: [
-    { title: 'Team Building Activities', photos: [] as string[] },
-    { title: 'Employee Awards & Recognition', photos: [] as string[] },
-    { title: 'Training & Development', photos: [] as string[] },
-    { title: 'Festival Celebrations', photos: [] as string[] },
-    { title: 'Company Events', photos: [] as string[] },
-    { title: 'Office Life', photos: [] as string[] },
-    { title: 'Community Initiatives', photos: [] as string[] },
+    { title: 'Team Building Activities', photos: [] as Photo[] },
+    {
+      title: 'Employee Awards & Recognition',
+      photos: [
+        { src: 'img/gallery/award-ceremony-1.webp', alt: 'The Passionate Global team in formal wear at the award ceremony', pos: '50% 72%' },
+        { src: 'img/gallery/award-ceremony-2.webp', alt: 'Team members gathered around a sofa at the award ceremony', pos: '50% 74%' },
+        { src: 'img/gallery/award-ceremony-3.webp', alt: 'The award ceremony team photo outdoors in the garden', pos: '50% 70%' },
+      ] as Photo[],
+    },
+    { title: 'Training & Development', photos: [] as Photo[] },
+    {
+      title: 'Festival Celebrations',
+      photos: [
+        { src: 'img/gallery/ganpati-celebration-2.webp', alt: 'Team members in traditional dress beside the Ganpati idol in the office', pos: '42% 45%' },
+        { src: 'img/gallery/ganpati-celebration-3.webp', alt: 'The team gathered around the Ganpati idol for the office celebration', pos: '50% 70%' },
+        { src: 'img/gallery/ganpati-celebration-1.webp', alt: 'Group photos of the team in traditional dress for the Ganpati celebration', pos: '50% 50%' },
+      ] as Photo[],
+    },
+    { title: 'Company Events', photos: [] as Photo[] },
+    { title: 'Office Life', photos: [] as Photo[] },
+    { title: 'Community Initiatives', photos: [] as Photo[] },
   ],
 };
 

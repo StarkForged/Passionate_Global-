@@ -1,7 +1,38 @@
 /** Life at Passionate Global — reference: ref_vid3 image-card row → two-row moving culture gallery. */
+import { useEffect, useRef, useState } from 'react';
+import { useInView } from 'framer-motion';
 import { Users, Award, GraduationCap, PartyPopper, CalendarHeart, Building2, Sprout } from 'lucide-react';
-import { life } from '@/data/content';
+import { life, type Photo } from '@/data/content';
 import { Reveal, SectionHeader } from '@/components/ui';
+import { prefersReducedMotion } from '@/lib/scroll';
+import sizes from '@/data/images.json';
+
+const dims = (src: string) => (sizes as Record<string, number[]>)[src] ?? [];
+const EVERY = 4500;
+
+/** A category's photos stacked in the card; crossfades every 4.5s while on screen (first photo only with reduced motion). */
+function Photos({ photos, offset }: { photos: Photo[]; offset: number }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { amount: 0.2 });
+  const [k, setK] = useState(offset % photos.length);
+  useEffect(() => {
+    if (!inView || photos.length < 2 || prefersReducedMotion()) return;
+    const id = setInterval(() => setK((v) => (v + 1) % photos.length), EVERY);
+    return () => clearInterval(id);
+  }, [inView, photos.length]);
+  return (
+    <div ref={ref} className="absolute inset-0 transition-transform duration-[1.2s] group-hover:scale-105">
+      {photos.map((p, j) => {
+        const [w, h] = dims(p.src);
+        return (
+          <img key={p.src} src={p.src} alt={p.alt} width={w} height={h} loading="lazy" decoding="async" aria-hidden={j !== k}
+            className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-1000 ${j === k ? 'opacity-100' : 'opacity-0'}`}
+            style={{ objectPosition: p.pos ?? '50% 50%' }} />
+        );
+      })}
+    </div>
+  );
+}
 
 const icons = [Users, Award, GraduationCap, PartyPopper, CalendarHeart, Building2, Sprout];
 const tones = [
@@ -9,13 +40,13 @@ const tones = [
   ['#3D8FF5', '#01152D'], ['#9CC8FF', '#0361DB'], ['#1679E0', '#0A2547'],
 ];
 
-function Card({ i }: { i: number }) {
-  const g = life.gallery[i]; const Icon = icons[i]; const photo = g.photos[0];
+function Card({ i, copy = 0 }: { i: number; copy?: number }) {
+  const g = life.gallery[i]; const Icon = icons[i]; const photo = g.photos.length > 0;
   return (
     <figure className="group relative h-[300px] w-[300px] shrink-0 overflow-hidden rounded-[1.75rem] sm:h-[340px] sm:w-[380px]"
       style={{ background: `linear-gradient(150deg, ${tones[i][0]}, ${tones[i][1]})` }}>
       {photo ? (
-        <img src={photo} alt={g.title} className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1.2s] group-hover:scale-105" />
+        <Photos photos={g.photos} offset={copy} />
       ) : (
         <>
           <div className="absolute inset-0 bg-[radial-gradient(80%_60%_at_80%_10%,rgba(255,255,255,.35),transparent_60%)]" />
@@ -68,7 +99,7 @@ export default function Life() {
         {[rowA, rowB].map((row, r) => (
           <div key={r} className="group/row flex overflow-hidden">
             <div className="flex w-max gap-5 hover:[animation-play-state:paused]" style={{ animation: `marquee ${r ? 70 : 60}s linear infinite ${r ? 'reverse' : ''}` }}>
-              {[...row, ...row].map((i, k) => <Card key={k} i={i} />)}
+              {[...row, ...row].map((i, k) => <Card key={k} i={i} copy={k + r} />)}
             </div>
           </div>
         ))}

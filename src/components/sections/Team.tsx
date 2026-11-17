@@ -5,21 +5,38 @@ import clsx from 'clsx';
 import { Plus, Quote, X } from 'lucide-react';
 import { team } from '@/data/content';
 import { EASE, Reveal, SectionHeader } from '@/components/ui';
+import sizes from '@/data/images.json';
 
-/** Portrait: shows the photo when provided, otherwise a branded monogram artwork. */
-export function Portrait({ initials, photo, name, className, big }: { initials: string; photo?: string; name: string; className?: string; big?: boolean }) {
+const dims = (src: string) => (sizes as Record<string, number[]>)[src] ?? [];
+/** optional per-person photo settings (see content.ts team.founder) */
+type PhotoOpts = { photoFit?: 'cutout' | 'cover'; photoPos?: string };
+
+/** Portrait: the photo when provided, otherwise a branded monogram artwork.
+ *  `fit="cutout"`: a transparent cut-out standing on the brand gradient (contained, anchored to the bottom so the
+ *  head is never cropped). Otherwise the photo covers the frame; `pos` (CSS object-position) keeps the face in. */
+export function Portrait({ initials, photo, name, className, big, fit, pos }: { initials: string; photo?: string; name: string; className?: string; big?: boolean; fit?: 'cutout' | 'cover'; pos?: string }) {
+  const [w, h] = photo ? dims(photo) : [];
+  const globe = (
+    <svg className="absolute -bottom-[30%] -right-[25%] h-[110%] w-[110%] text-white/[0.09]" viewBox="0 0 200 200" aria-hidden>
+      <circle cx="100" cy="100" r="96" fill="none" stroke="currentColor" />
+      {[20, 45, 70].map((rx) => <ellipse key={rx} cx="100" cy="100" rx={rx} ry="96" fill="none" stroke="currentColor" />)}
+      {[-60, -30, 0, 30, 60].map((y) => <ellipse key={y} cx="100" cy={100 + y} rx={Math.sqrt(96 * 96 - y * y)} ry={8} fill="none" stroke="currentColor" />)}
+    </svg>
+  );
   return (
     <div className={clsx('isolate overflow-hidden', className)} style={{ background: 'radial-gradient(120% 100% at 25% 0%, #5AA5FF 0%, #0361DB 42%, #01152D 100%)' }}>
       {photo ? (
-        <img src={photo} alt={name} className="absolute inset-0 h-full w-full object-cover" />
+        <>
+          {fit === 'cutout' && globe}
+          <img src={photo} alt={`Portrait of ${name}`} width={w} height={h} loading="lazy" decoding="async"
+            className={clsx('absolute h-full w-full', fit === 'cutout' ? 'inset-x-0 bottom-0 top-[6%] h-[94%] object-contain' : 'inset-0 object-cover')}
+            style={{ objectPosition: pos ?? (fit === 'cutout' ? '50% 100%' : '50% 25%') }} />
+          {/* keeps the name / role overlay legible */}
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_50%,rgba(0,9,21,.72))]" />
+        </>
       ) : (
         <>
-          {/* globe line artwork */}
-          <svg className="absolute -bottom-[30%] -right-[25%] h-[110%] w-[110%] text-white/[0.09]" viewBox="0 0 200 200" aria-hidden>
-            <circle cx="100" cy="100" r="96" fill="none" stroke="currentColor" />
-            {[20, 45, 70].map((rx) => <ellipse key={rx} cx="100" cy="100" rx={rx} ry="96" fill="none" stroke="currentColor" />)}
-            {[-60, -30, 0, 30, 60].map((y) => <ellipse key={y} cx="100" cy={100 + y} rx={Math.sqrt(96 * 96 - y * y)} ry={8} fill="none" stroke="currentColor" />)}
-          </svg>
+          {globe}
           <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_45%,rgba(0,9,21,.55))]" />
           <span className={clsx('absolute left-[8%] top-[6%] font-display font-light leading-none tracking-[-0.06em] text-white/95', big ? 'text-[clamp(6rem,11vw,10rem)]' : 'text-[clamp(4.5rem,7vw,6rem)]')}>{initials}</span>
         </>
@@ -34,7 +51,7 @@ function Member({ m, i }: { m: (typeof team.members)[number]; i: number }) {
     <motion.article initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.9, ease: EASE, delay: i * 0.1 }}
       className="group relative overflow-hidden rounded-[2rem] bg-white shadow-lift">
       <div className="relative aspect-[4/4.6]">
-        <Portrait initials={m.initials} photo={m.photo} name={m.name} className="absolute inset-0 transition-transform duration-[1.2s] ease-out group-hover:scale-[1.04]" />
+        <Portrait initials={m.initials} photo={m.photo} name={m.name} fit={(m as PhotoOpts).photoFit} pos={(m as PhotoOpts).photoPos} className="absolute inset-0 transition-transform duration-[1.2s] ease-out group-hover:scale-[1.04]" />
         <span className="absolute right-4 top-4 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[12px] font-semibold text-white backdrop-blur-md">{m.tenure}</span>
         <div className="absolute inset-x-0 bottom-0 p-6 text-white">
           <h3 className="font-display text-[26px] font-semibold tracking-[-0.03em]">{m.name}</h3>
@@ -73,7 +90,7 @@ export default function Team() {
         <Reveal className="mt-16">
           <article className="grid overflow-hidden rounded-[2.5rem] bg-white shadow-lift lg:grid-cols-[440px_1fr]">
             <div className="relative min-h-[420px]">
-              <Portrait big initials={f.initials} photo={f.photo} name={f.name} className="absolute inset-0" />
+              <Portrait big initials={f.initials} photo={f.photo} name={f.name} fit={f.photoFit} pos={f.photoPos} className="absolute inset-0" />
               <div className="absolute inset-x-0 bottom-0 p-8 text-white">
                 <span className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[12px] font-semibold backdrop-blur-md">{f.tenure} experience</span>
                 <h3 className="mt-4 font-display text-[clamp(2rem,3.4vw,2.8rem)] font-semibold leading-none tracking-[-0.04em]">{f.name}</h3>
