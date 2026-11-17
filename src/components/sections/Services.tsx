@@ -190,7 +190,7 @@ function ZoneLegend({ now, active, className }: { now: Date; active: number; cla
     <div className={cn('flex flex-wrap justify-center gap-2', className)} onMouseLeave={() => pinZone(null)}>
       {ZONES.map((z, i) => (
         <button key={z.tz} type="button" onClick={() => pinZone(zoneStore.pinned === i ? null : i)} aria-pressed={active === i}
-          className={cn('flex min-h-[40px] items-center gap-2 rounded-full border px-3.5 text-[14px] font-semibold tabular-nums transition-colors duration-300',
+          className={cn('flex min-h-[44px] items-center gap-2 rounded-full border px-4 text-[14px] font-semibold tabular-nums transition-colors duration-300',
             active === i ? 'border-white/25 bg-white/[0.12] text-white' : 'border-white/10 bg-white/[0.04] text-[#B9CBE4] hover:bg-white/[0.08]')}>
           <span className="h-2.5 w-2.5 rounded-full" style={{ background: ZONE_COLORS[i] }} />
           {z.short} <span className="text-white">{formatTime(z.tz, now)}</span>

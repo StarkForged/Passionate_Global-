@@ -7,6 +7,9 @@
   html.lenis, html.lenis body { height: auto; }
   .lenis.lenis-smooth { scroll-behavior: auto !important; }
   body { @apply bg-ice text-ink font-sans antialiased; overflow-x: hidden; font-feature-settings: "ss01", "cv11"; }
+  /* clip (unlike hidden) creates no scroll container, so sticky + Lenis keep working and mobile browsers
+     can't widen the layout viewport from decorative overflow */
+  @supports (overflow: clip) { html, body { overflow-x: clip; } }
   h1, h2, h3, h4 { @apply font-display; text-wrap: balance; letter-spacing: -0.03em; }
   ::selection { background: #0361DB; color: #fff; }
   :focus-visible { outline: 2px solid #5AA5FF; outline-offset: 3px; border-radius: 8px; }
