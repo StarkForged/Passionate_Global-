@@ -103,6 +103,8 @@ export const services = {
       title: 'Recruitment Support',
       body: 'Supporting recruitment businesses with dedicated professionals who strengthen every stage of the recruitment lifecycle.',
       list: ['360 Recruitment Consultants', 'Candidate Sourcing & Screening', 'Booking Consultants', 'Compliance Support', 'Reference Chasing', 'CV Formatting'],
+      // Stage labels along the illustration's path, in order (client round 1)
+      stages: ['Sourcing', 'Compliance', 'Placement', 'Payroll', 'Admin Support'],
     },
     {
       id: 'finance',

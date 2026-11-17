@@ -4,12 +4,12 @@
  * (skeleton bars instead of names / amounts).
  */
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { AnimatePresence, motion, useInView, useMotionValue, useScroll, useTransform, type MotionValue } from 'framer-motion';
+import { AnimatePresence, motion, useAnimationFrame, useInView, useMotionValue, useScroll, useTransform, type MotionValue } from 'framer-motion';
 import { Check, UserRound, Inbox, CircleCheck } from 'lucide-react';
 import { services } from '@/data/content';
 import { EASE, Reveal, SectionHeader } from '@/components/ui';
 import { formatTime, hourIn, useNow } from '@/hooks/useClock';
-import { usePinnable } from '@/hooks/useMedia';
+import { useMedia, usePinnable } from '@/hooks/useMedia';
 import { prefersReducedMotion } from '@/lib/scroll';
 import { cn } from '@/lib/utils';
 
@@ -28,25 +28,98 @@ const usePlay = <T extends Element,>() => {
   return [ref, inView || prefersReducedMotion()] as const;
 };
 
-/* ---------- 1. Recruitment: candidates travel one curved path, Sourced → Placed ---------- */
-const PATH = 'M 50 290 C 190 290 220 90 470 80';
-function RecruitmentArt() {
-  const [ref, on] = usePlay<HTMLDivElement>();
+/* ---------- 1. Recruitment: candidates travel one curved path through five stages ----------
+ * Geometry (520×380 canvas) was solved offline so no label is ever under a card: cards (120×44) are
+ * centred on the path and visible between 8% and 92% of it; every label keeps ≥ 5px clearance.
+ * Stage points sit on the path at length fractions 0 / .44 / .55 / .66 / 1. */
+const PATH = 'M 90 310 C 321 310 255 60 420 60';
+const RCYCLE = 10600, RTRAVEL = 6000, RGAP = 1600, RCARDS = 3;
+const T0 = typeof performance !== 'undefined' ? performance.now() : 0; // shared clock: art + chips stay in sync
+const STAGE_AT = [0.02, 0.44, 0.55, 0.66, 0.92]; // lead card progress that lights each stage
+/** dot on the path, pill anchor + translate, connector end */
+const STAGE_GEO = [
+  { dot: [90, 310], pill: { left: 90, top: 336, x: '-50%', y: '0%' }, line: [90, 330] },
+  { dot: [256, 226], pill: { left: 134, top: 226, x: '-100%', y: '-50%' }, line: [140, 226] },
+  { dot: [280, 184], pill: { left: 381, top: 184, x: '0%', y: '-50%' }, line: [375, 184] },
+  { dot: [303, 141], pill: { left: 410, top: 141, x: '0%', y: '-50%' }, line: [404, 141] },
+  { dot: [420, 60], pill: { left: 489, top: 34, x: '-100%', y: '-100%' }, line: [420, 40] },
+] as const;
+const stages: readonly string[] = services.items[0].stages ?? [];
+const cardProgress = (t: number, i: number) => Math.min(1, Math.max(0, (t - 300 - i * RGAP) / RTRAVEL));
+
+/** Number of stages lit right now (all of them with reduced motion). */
+function useStagesLit(active: boolean) {
+  const still = prefersReducedMotion();
+  const [lit, setLit] = useState(still ? stages.length : 0);
+  useAnimationFrame(() => {
+    if (!active || still) return;
+    const p = cardProgress((performance.now() - T0) % RCYCLE, 0);
+    const n = STAGE_AT.filter((a) => p >= a).length;
+    setLit((v) => (v === n ? v : n));
+  });
+  return lit;
+}
+
+function StagePill({ label, on, className, style }: { label: string; on: boolean; className?: string; style?: React.CSSProperties }) {
   return (
-    <div ref={ref} className="relative h-[360px] w-[520px]">
-      <svg viewBox="0 0 520 360" className="absolute inset-0 h-full w-full" aria-hidden>
+    <span style={style} className={cn('flex items-center gap-1.5 whitespace-nowrap rounded-full border px-3 py-1 text-[14px] font-semibold leading-5 transition-shadow duration-500',
+      on ? 'border-transparent bg-grad text-white shadow-blue' : 'border-navy/10 bg-white text-muted shadow-soft', className)}>
+      {on ? <Check className="h-3.5 w-3.5" strokeWidth={3} /> : <span className="mx-[3px] h-2 w-2 rounded-full bg-navy/15" />}
+      {label}
+    </span>
+  );
+}
+
+/** Phones: the art scales too small for labels, so the stages sit underneath as chips. */
+function StageChips() {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { amount: 0.3 });
+  const lit = useStagesLit(inView);
+  return (
+    <div ref={ref} className="flex flex-wrap justify-center gap-2 px-4 pb-6">
+      {stages.map((s, k) => <StagePill key={s} label={s} on={k < lit} />)}
+    </div>
+  );
+}
+
+function RecruitmentArt({ compact = false }: { compact?: boolean }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const seen = useInView(ref, { once: true, amount: 0.4 });
+  const inView = useInView(ref, { amount: 0.1 });
+  const still = prefersReducedMotion();
+  const cards = useRef<(HTMLDivElement | null)[]>([]);
+  const lit = useStagesLit(inView);
+  useAnimationFrame(() => {
+    if (!inView || still) return;
+    const t = (performance.now() - T0) % RCYCLE;
+    cards.current.forEach((el, i) => {
+      if (!el) return;
+      const p = 0.08 + cardProgress(t, i) * 0.84; // visible stretch of the path
+      el.style.offsetDistance = `${p * 100}%`;
+      el.style.opacity = String(Math.max(0, Math.min(1, (p - 0.08) / 0.05, (0.92 - p) / 0.05)));
+    });
+  });
+  return (
+    <div ref={ref} className="relative h-[380px] w-[520px]">
+      <svg viewBox="0 0 520 380" className="absolute inset-0 h-full w-full" aria-hidden>
         <path d={PATH} fill="none" stroke="rgba(3,97,219,.15)" strokeWidth="2" strokeDasharray="4 8" strokeLinecap="round" />
-        <motion.path d={PATH} fill="none" stroke="url(#rg)" strokeWidth="3" strokeLinecap="round" initial={{ pathLength: 0 }} animate={on ? { pathLength: 1 } : undefined} transition={{ duration: 1.8, ease: EASE }} />
+        <motion.path d={PATH} fill="none" stroke="url(#rg)" strokeWidth="3" strokeLinecap="round" initial={{ pathLength: still ? 1 : 0 }} animate={seen ? { pathLength: 1 } : undefined} transition={{ duration: 1.6, ease: EASE }} />
         <defs><linearGradient id="rg" x1="0" x2="1"><stop stopColor="#5AA5FF" /><stop offset="1" stopColor="#0361DB" /></linearGradient></defs>
-        <circle cx="50" cy="290" r="7" fill="#fff" stroke="#5AA5FF" strokeWidth="3" />
-        <circle cx="470" cy="80" r="9" fill="#0361DB" />
+        {STAGE_GEO.map((g, k) => (
+          <g key={k}>
+            {!compact && <line x1={g.dot[0]} y1={g.dot[1]} x2={g.line[0]} y2={g.line[1]} stroke={k < lit ? 'rgba(3,97,219,.45)' : 'rgba(3,97,219,.18)'} strokeWidth="1.5" strokeDasharray="2 4" />}
+            <circle cx={g.dot[0]} cy={g.dot[1]} r={k === 4 ? 8 : 6} fill={k < lit ? '#0361DB' : '#fff'} stroke={k < lit ? '#0361DB' : '#9CC8FF'} strokeWidth="2.5" />
+          </g>
+        ))}
       </svg>
-      <span className="absolute left-[24px] top-[312px] text-[14px] font-semibold text-muted">Sourced</span>
-      <span className="absolute left-[400px] top-[28px] flex items-center gap-1.5 rounded-full bg-brand px-3 py-1 text-[14px] font-semibold text-white shadow-blue"><Check className="h-4 w-4" strokeWidth={2.5} />Placed</span>
-      {on && [0, 1, 2, 3].map((i) => (
-        <div key={i} className="travel absolute left-0 top-0 flex h-[50px] w-[150px] items-center gap-2.5 rounded-2xl bg-white px-3 shadow-lift"
-          style={{ offsetPath: `path("${PATH}")`, offsetDistance: `${14 + i * 24}%`, animationDelay: `${-i * 2.6 + 1.6}s` }}>
-          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-grad text-white"><UserRound className="h-4 w-4" /></span>
+      {!compact && stages.map((s, k) => {
+        const g = STAGE_GEO[k].pill;
+        return <StagePill key={s} label={s} on={k < lit} className="absolute" style={{ left: g.left, top: g.top, transform: `translate(${g.x}, ${g.y})` }} />;
+      })}
+      {Array.from({ length: RCARDS }).map((_, i) => (
+        <div key={i} ref={(el) => { cards.current[i] = el; }} className="absolute left-0 top-0 flex h-[44px] w-[120px] items-center gap-2 rounded-xl bg-white px-2.5 shadow-lift"
+          style={{ offsetPath: `path("${PATH}")`, offsetRotate: '0deg', offsetAnchor: '50% 50%', offsetDistance: `${(0.25 + i * 0.25) * 100}%`, opacity: still ? 1 : 0 }}>
+          <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-grad text-white"><UserRound className="h-3.5 w-3.5" /></span>
           <span className="flex flex-1 flex-col gap-1.5"><span className="h-2 w-[80%] rounded-full bg-navy/15" /><span className="h-2 w-[50%] rounded-full bg-navy/[0.08]" /></span>
         </div>
       ))}
@@ -167,8 +240,8 @@ function BusinessArt() {
   );
 }
 
-const arts: ReactNode[] = [<RecruitmentArt />, <FinanceArt />, <OohArt />, <BusinessArt />];
-const artSize = [[520, 360], [420, 440], [340, 340], [420, 420]];
+const arts: ((compact: boolean) => ReactNode)[] = [(c) => <RecruitmentArt compact={c} />, () => <FinanceArt />, () => <OohArt />, () => <BusinessArt />];
+const artSize = [[520, 380], [420, 440], [340, 340], [420, 420]];
 
 /** Scales a fixed-size illustration to fit its panel. The art is taken out of flow so its
  *  fixed width never widens the card; on small screens the panel height follows the scale. */
@@ -176,6 +249,7 @@ function Fit({ i }: { i: number }) {
   const ref = useRef<HTMLDivElement>(null);
   const [w, h] = artSize[i];
   const [s, setS] = useState(1);
+  const compact = useMedia('(max-width: 639px)');
   useEffect(() => {
     const el = ref.current; if (!el) return;
     const lg = matchMedia('(min-width: 1024px)');
@@ -183,8 +257,11 @@ function Fit({ i }: { i: number }) {
     ro.observe(el); return () => ro.disconnect();
   }, [w, h]);
   return (
-    <div ref={ref} className="relative h-full w-full min-w-0 overflow-hidden" style={{ minHeight: Math.round(h * s + 40) }}>
-      <div className="absolute left-1/2 top-1/2" style={{ width: w, height: h, transform: `translate(-50%, -50%) scale(${s})` }}>{arts[i]}</div>
+    <div className="flex h-full w-full min-w-0 flex-col">
+      <div ref={ref} className="relative w-full min-w-0 flex-1 overflow-hidden" style={{ minHeight: Math.round(h * s + 40) }}>
+        <div className="absolute left-1/2 top-1/2" style={{ width: w, height: h, transform: `translate(-50%, -50%) scale(${s})` }}>{arts[i](compact)}</div>
+      </div>
+      {compact && i === 0 && <StageChips />}
     </div>
   );
 }

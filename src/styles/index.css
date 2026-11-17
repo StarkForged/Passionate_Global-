@@ -72,13 +72,8 @@
   *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
 }
 
-/* Services: candidate cards travelling along the recruitment path */
-.travel { offset-rotate: 0deg; offset-anchor: 50% 50%; animation: travel 10.4s linear infinite; }
-@keyframes travel { 0% { offset-distance: 0%; opacity: 0; } 8%, 86% { opacity: 1; } 100% { offset-distance: 100%; opacity: 0; } }
-
 /* Reduced motion: park animated-position elements at a meaningful resting place instead of
    letting the global rule snap them back to their un-animated origin. */
 @media (prefers-reduced-motion: reduce) {
   .orbit { animation: none !important; transform: rotate(calc(var(--angle) * 1deg)) translateY(calc(var(--radius) * 1px)) rotate(calc(var(--angle) * -1deg)); }
-  .travel { animation: none !important; }
 }
