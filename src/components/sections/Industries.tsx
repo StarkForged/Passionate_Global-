@@ -30,14 +30,18 @@ function RingIcon({ icon: Icon, size = 120 }: { icon: LucideIcon; size?: number 
   );
 }
 
-function Tile({ i, className }: { i: number; className?: string }) {
+function Tile({ i, className, ring = 120 }: { i: number; className?: string; ring?: number }) {
   return (
-    <div className={cn('relative grid place-items-center overflow-hidden rounded-[1.5rem] bg-[radial-gradient(120%_100%_at_20%_0%,#5AA5FF_0%,#0361DB_45%,#01306F_100%)] shadow-[0_30px_60px_-20px_rgba(3,97,219,.55)]', className)}>
+    <div className={cn('relative grid place-items-center overflow-hidden bg-[radial-gradient(120%_100%_at_20%_0%,#5AA5FF_0%,#0361DB_45%,#01306F_100%)]', className)}>
       <div className="absolute inset-0 bg-[linear-gradient(125deg,rgba(255,255,255,.28)_0%,transparent_40%)]" />
-      <RingIcon icon={icons[i]} />
+      <RingIcon icon={icons[i]} size={ring} />
     </div>
   );
 }
+
+// Cursor preview: small and offset to the right of the cursor (and of the industry name) so it never
+// covers the text. Client round 1: the old 280×200 tile was too big.
+const PW = 150, PH = 110, GAP = 24;
 
 export default function Industries() {
   const desktop = useMedia('(min-width: 1024px) and (hover: hover)');
@@ -45,16 +49,26 @@ export default function Industries() {
   const [active, setActive] = useState<number | null>(null);
   const [open, setOpen] = useState<number | null>(null);
   const x = useMotionValue(0), y = useMotionValue(0);
-  const sx = useSpring(x, { stiffness: 220, damping: 24, mass: 0.6 }), sy = useSpring(y, { stiffness: 220, damping: 24, mass: 0.6 });
+  const sx = useSpring(x, { stiffness: 170, damping: 26, mass: 0.7 }), sy = useSpring(y, { stiffness: 170, damping: 26, mass: 0.7 });
 
+  /** Place the preview GAP px right of `px` (never left of the row's name), vertically centred on `py`,
+   *  clamped inside the list. Coordinates are relative to the list. */
+  const place = (px: number, py: number, row: Element | null) => {
+    const r = list.current!.getBoundingClientRect();
+    const name = row?.querySelector('[data-name]')?.getBoundingClientRect();
+    const sector = row?.querySelector('[data-sector]')?.getBoundingClientRect();
+    const left = Math.max(px, name ? name.right - r.left : 0) + GAP;
+    const maxLeft = sector && sector.width ? sector.left - r.left - GAP - PW : r.width - PW; // stay clear of the right-hand label
+    x.set(Math.min(left, maxLeft)); y.set(Math.min(Math.max(py - PH / 2, 0), r.height - PH));
+  };
   const follow = (e: React.PointerEvent) => {
     const r = list.current!.getBoundingClientRect();
-    x.set(e.clientX - r.left - 140); y.set(e.clientY - r.top - 100);
+    place(e.clientX - r.left, e.clientY - r.top, (e.target as Element).closest('button'));
   };
-  // keyboard focus: park the preview over the row's right side
+  // keyboard focus: park the preview just after the row's name
   const anchor = (el: HTMLElement) => {
     const r = list.current!.getBoundingClientRect(), b = el.getBoundingClientRect();
-    x.set(b.right - r.left - 520); y.set(b.top - r.top + b.height / 2 - 100);
+    place(0, b.top - r.top + b.height / 2, el);
   };
 
   return (
@@ -84,16 +98,16 @@ export default function Industries() {
                   <span aria-hidden className={cn('absolute inset-0 -z-10 origin-left rounded-2xl bg-grad transition-transform duration-500 ease-[cubic-bezier(.22,1,.36,1)]', on && desktop ? 'scale-x-100' : 'scale-x-0')} />
                   <span className={cn('w-8 shrink-0 text-[14px] font-semibold tabular-nums transition-colors duration-300', on && desktop ? 'text-white/70' : 'text-muted')}>0{i + 1}</span>
                   <span className={cn('grid h-11 w-11 shrink-0 place-items-center rounded-full bg-ice text-brand lg:hidden', on && 'bg-brand text-white')}><Icon className="h-5 w-5" strokeWidth={1.6} /></span>
-                  <span className={cn('font-display text-[clamp(1.75rem,4.6vw,4rem)] font-semibold leading-none tracking-[-0.045em] transition-colors duration-300', on && desktop ? 'text-white' : 'text-ink')}>{name}</span>
+                  <span data-name className={cn('font-display text-[clamp(1.75rem,4.6vw,4rem)] font-semibold leading-none tracking-[-0.045em] transition-colors duration-300', on && desktop ? 'text-white' : 'text-ink')}>{name}</span>
                   <span aria-hidden className={cn('mx-2 hidden h-px flex-1 translate-y-3 border-b-2 border-dotted transition-colors duration-300 lg:block', on && desktop ? 'border-white/40' : 'border-navy/15')} />
-                  <span className={cn('ml-auto hidden whitespace-nowrap text-[15px] font-medium transition-colors duration-300 sm:block lg:ml-0', on && desktop ? 'text-white/85' : 'text-muted')}>{SECTOR}</span>
+                  <span data-sector className={cn('ml-auto hidden whitespace-nowrap text-[15px] font-medium transition-colors duration-300 sm:block lg:ml-0', on && desktop ? 'text-white/85' : 'text-muted')}>{SECTOR}</span>
                   <ArrowRight className={cn('ml-auto h-6 w-6 shrink-0 transition-all duration-500 sm:ml-0', on ? '-rotate-45' : '', on && desktop ? 'text-white' : 'text-brand')} strokeWidth={1.8} />
                 </button>
                 {!desktop && (
                   <AnimatePresence initial={false}>
                     {on && (
                       <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.5, ease: EASE }} className="overflow-hidden">
-                        <Tile i={i} className="mb-5 h-[200px]" />
+                        <Tile i={i} ring={96} className="mb-5 h-[160px] rounded-[1.25rem]" />
                       </motion.div>
                     )}
                   </AnimatePresence>
@@ -104,12 +118,12 @@ export default function Industries() {
 
           {/* cursor-following preview (desktop) */}
           {desktop && (
-            <motion.div aria-hidden className="pointer-events-none absolute left-0 top-0 z-10 h-[200px] w-[280px]" style={{ x: sx, y: sy }}
-              initial={false} animate={{ opacity: active === null ? 0 : 1, scale: active === null ? 0.85 : 1 }} transition={{ duration: 0.35, ease: EASE }}>
+            <motion.div aria-hidden className="pointer-events-none absolute left-0 top-0 z-10" style={{ x: sx, y: sy, width: PW, height: PH }}
+              initial={false} animate={{ opacity: active === null ? 0 : 1, scale: active === null ? 0.9 : 1 }} transition={{ duration: 0.15, ease: EASE }}>
               <AnimatePresence initial={false}>
                 {active !== null && (
-                  <motion.div key={active} className="absolute inset-0" initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
-                    <Tile i={active} className="h-full w-full" />
+                  <motion.div key={active} className="absolute inset-0" initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
+                    <Tile i={active} ring={76} className="h-full w-full rounded-[18px] shadow-[0_14px_30px_-12px_rgba(3,97,219,.45)]" />
                   </motion.div>
                 )}
               </AnimatePresence>
