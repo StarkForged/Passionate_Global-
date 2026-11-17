@@ -5,14 +5,13 @@
  */
 import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, LayoutGroup, motion, useMotionValueEvent, useScroll } from 'framer-motion';
-import { Target, Eye, Handshake, ShieldCheck, ClipboardCheck, Award, Lightbulb, TrendingUp, ArrowRight, type LucideIcon } from 'lucide-react';
+import { Target, Eye, type LucideIcon } from 'lucide-react';
 import { mission, vision, values, purpose } from '@/data/content';
 import { EASE } from '@/components/ui';
 import { cn } from '@/lib/utils';
-import { usePinnable } from '@/hooks/useMedia';
+import { useMedia, usePinnable } from '@/hooks/useMedia';
+import ValuesWheel, { valueIcons, HEX } from './ValuesWheel';
 
-const valueIcons: LucideIcon[] = [Handshake, ShieldCheck, ClipboardCheck, Award, Lightbulb, TrendingUp];
-const HEX = 'polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%)';
 
 const blocks = [
   { label: purpose.missionLabel, text: mission },
@@ -128,33 +127,21 @@ function StoryStatic() {
   );
 }
 
-function ValueRow({ v, i }: { v: string; i: number }) {
-  const Icon = valueIcons[i];
-  return (
-    <motion.li initial={{ opacity: 0, x: i % 2 ? 80 : -80 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, amount: 0.6 }} transition={{ duration: 0.9, ease: EASE }}
-      tabIndex={0} className="group relative isolate cursor-default overflow-hidden border-b border-navy/10 outline-none first:border-t">
-      <span aria-hidden className="absolute inset-0 -z-10 origin-left scale-x-0 bg-grad transition-transform duration-500 ease-[cubic-bezier(.22,1,.36,1)] group-hover:scale-x-100 group-focus-visible:scale-x-100" />
-      <div className="container-site flex items-center gap-6 py-5 sm:py-6">
-        <span className="w-10 shrink-0 text-[14px] font-semibold tabular-nums text-muted transition-colors duration-300 group-hover:text-white/70 group-focus-visible:text-white/70">0{i + 1}</span>
-        <span className="font-display text-[clamp(2.1rem,6vw,5rem)] font-semibold leading-none tracking-[-0.045em] text-ink transition-colors duration-300 group-hover:text-white group-focus-visible:text-white">{v}</span>
-        <span className="ml-auto flex translate-x-10 items-center gap-3 text-white opacity-0 transition-all duration-500 ease-[cubic-bezier(.22,1,.36,1)] group-hover:translate-x-0 group-hover:opacity-100 group-focus-visible:translate-x-0 group-focus-visible:opacity-100">
-          <Icon className="h-10 w-10" strokeWidth={1.6} /><ArrowRight className="hidden h-6 w-6 sm:block" strokeWidth={1.6} />
-        </span>
-      </div>
-    </motion.li>
-  );
-}
-
 export default function Purpose() {
   const pin = usePinnable();
+  const lg = useMedia('(min-width: 1024px)');
   return (
     <section id="purpose" data-theme="light" className="relative bg-ice py-24 md:py-32 lg:py-24">
       <h2 className="sr-only">{purpose.srTitle}</h2>
       {pin ? <Story /> : <StoryStatic />}
 
-      <div className="mt-24 lg:mt-20">
-        <p className="container-site mb-8 text-[13px] font-semibold uppercase tracking-[0.16em] text-brand">{purpose.coreValuesLabel}</p>
-        <ul>{values.map((v, i) => <ValueRow key={v} v={v} i={i} />)}</ul>
+      <div className="container-site mt-24 lg:mt-16">
+        <motion.p initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.7, ease: EASE }}
+          className="text-center text-[13px] font-semibold uppercase tracking-[0.16em] text-brand">{purpose.coreValuesLabel}</motion.p>
+        <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.25 }} transition={{ duration: 0.8, ease: EASE }}
+          className="mt-10 lg:mt-6">
+          <ValuesWheel ring={lg} />
+        </motion.div>
       </div>
     </section>
   );
