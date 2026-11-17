@@ -103,18 +103,22 @@ function Story() {
 
 /** Mobile / reduced motion: each statement with its own static visual. */
 function StoryStatic() {
+  const lg = useMedia('(min-width: 1024px)');
   return (
     <div className="container-site grid gap-20">
       {blocks.map((b, i) => (
-        <motion.div key={b.label} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.3 }} transition={{ duration: 0.8, ease: EASE }}>
-          <div className="relative isolate aspect-[4/3] w-full">
+        <motion.div key={b.label} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.3 }} transition={{ duration: 0.8, ease: EASE }}
+          className="lg:grid lg:grid-cols-[1fr_440px] lg:items-center lg:gap-20">
+          <div className="relative isolate aspect-[4/3] w-full lg:order-2 lg:aspect-square">
             <GlassBackdrop shift={i} dots={false} bare className="-inset-6" scale={0.6} />
             <GlassPanel className="absolute inset-0 grid place-items-center overflow-hidden">
-              {i < 2 ? <GlassBadge icon={i === 0 ? Target : Eye} size={140} /> : <Honeycomb size={64} />}
+              {i < 2 ? <GlassBadge icon={i === 0 ? Target : Eye} size={lg ? 210 : 140} /> : <Honeycomb size={lg ? 96 : 64} />}
             </GlassPanel>
           </div>
-          <p className="mt-8 text-[12px] font-semibold uppercase tracking-[0.14em] text-brand">{b.label}</p>
-          <p className="mt-4 font-display text-[clamp(1.6rem,6.4vw,2.25rem)] font-semibold leading-[1.18] tracking-[-0.035em] text-ink">{b.text}</p>
+          <div>
+            <p className="mt-8 text-[12px] font-semibold uppercase tracking-[0.14em] text-brand lg:mt-0">{b.label}</p>
+            <p className="mt-4 max-w-[24ch] font-display text-[clamp(1.6rem,6.4vw,2.25rem)] font-semibold leading-[1.18] tracking-[-0.035em] text-ink lg:text-[clamp(2rem,2.8vw,2.5rem)]">{b.text}</p>
+          </div>
         </motion.div>
       ))}
     </div>
