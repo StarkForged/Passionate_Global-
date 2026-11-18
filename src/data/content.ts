@@ -119,9 +119,9 @@ export const services = {
       list: ['Out-of-Hours Recruitment Support', 'Overnight Administration', 'Booking Co-ordinators', 'Customer Service', 'Emergency Shift Support'],
       // Live time zones on the 24h dial (client round 1). IANA zones, so DST is always correct.
       zones: [
-        { short: 'UK', name: 'UK time', tz: 'Europe/London' },
-        { short: 'USA', name: 'USA time', tz: 'America/New_York' },
-        { short: 'AUS', name: 'Australia time', tz: 'Australia/Sydney' },
+        { short: 'UK', name: 'UK', tz: 'Europe/London' },
+        { short: 'USA', name: 'USA', tz: 'America/New_York' },
+        { short: 'AUS', name: 'Australia', tz: 'Australia/Sydney' },
       ],
       officeHours: { from: 9, to: 17 }, // local hours; outside this the zone is "out of hours"
       statusOffice: 'Office hours',
