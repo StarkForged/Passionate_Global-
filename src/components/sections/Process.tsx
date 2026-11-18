@@ -33,7 +33,7 @@ function Counter({ step, progress }: { step: number; progress: ReturnType<typeof
   const R = 54, C = 2 * Math.PI * R;
   const dash = useTransform(progress, (p) => C * (1 - p));
   return (
-    <div className="sticky top-[calc(50vh-190px)]">
+    <div className="sticky top-[max(calc(var(--nav-h)+16px),calc(50vh-190px))]">
       <p aria-live="polite" className="text-[12px] font-semibold uppercase tracking-[0.14em] text-brand">Step {step + 1} of {n}</p>
       <p className="mt-2 font-display text-[clamp(10rem,14vw,12.5rem)] font-semibold leading-none tracking-[-0.06em]" aria-hidden>
         <span className="text-outline">0</span><Odometer value={step} />

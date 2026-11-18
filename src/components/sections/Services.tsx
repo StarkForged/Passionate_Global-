@@ -10,7 +10,7 @@ import { services } from '@/data/content';
 import { Clock, EASE, Reveal, SectionHeader } from '@/components/ui';
 import { formatTime, hourIn, useNow } from '@/hooks/useClock';
 import { useMedia } from '@/hooks/useMedia';
-import { prefersReducedMotion } from '@/lib/scroll';
+import { navH, prefersReducedMotion } from '@/lib/scroll';
 import { cn } from '@/lib/utils';
 
 type Theme = { card: string; panel: string; title: string; body: string; idx: string; check: string; item: string; dark: boolean };
@@ -454,18 +454,19 @@ function Fit({ i }: { i: number }) {
 }
 
 /* Stacking geometry (round 2: every card must fit the viewport, e.g. a 1366×650 laptop).
- * Sticky top = nav (16px offset + 56px pill) + 16px gap, then 10px per stacked card. Card height fills the rest
- * of the viewport, clamped to 520–640px. Stacking is off below 1024px wide or 640px tall. */
-const STICK = 88, STEP = 10;
-const CARD_H = `min(640px, max(520px, calc(100svh - ${STICK + 32 + STEP * 3}px)))`;
+ * Sticky top = var(--nav-h) + 16px gap (round 3: one source for the header height), then 10px per stacked card.
+ * Card height fills the rest of the viewport, clamped to 520–640px. Stacking is off below 1024px wide or 640px tall. */
+const STEP = 10;
+const STICK_CSS = 'calc(var(--nav-h) + 16px)';
+const CARD_H = `min(640px, max(520px, calc(100svh - var(--nav-h) - 16px - ${32 + STEP * 3}px)))`;
 const useStackable = () => useMedia('(min-width: 1024px) and (min-height: 640px) and (prefers-reduced-motion: no-preference)');
-type Geo = { top: number; vh: number };
+type Geo = { top: number; vh: number; stick: number };
 
 function Card({ i, scrollY, geo, stacked }: { i: number; scrollY: MotionValue<number>; geo: Geo; stacked: boolean }) {
   const s = services.items[i], t = themes[i], n = services.items.length;
   // Card i+1 slides over card i between: its top entering the viewport -> it sticking.
   const coverFrom = geo.top + i * geo.vh;
-  const coverTo = geo.top + (i + 1) * geo.vh - STICK - (i + 1) * STEP;
+  const coverTo = geo.top + (i + 1) * geo.vh - geo.stick - (i + 1) * STEP;
   const last = i === n - 1;
   // covered cards keep their own colour: they settle at 0.96 scale and 85% opacity, so the 10px that
   // peeks above the next card reads as a deliberate deck (round 1 dimmed them with navy = grey "crop" edges)
@@ -519,9 +520,9 @@ function StackProgress({ scrollY, geo }: { scrollY: MotionValue<number>; geo: Ge
 function Stack() {
   const wrap = useRef<HTMLDivElement>(null);
   const { scrollY } = useScroll();
-  const [geo, setGeo] = useState<Geo>({ top: 0, vh: 900 });
+  const [geo, setGeo] = useState<Geo>({ top: 0, vh: 900, stick: 92 });
   useEffect(() => {
-    const measure = () => wrap.current && setGeo({ top: wrap.current.getBoundingClientRect().top + scrollY.get(), vh: innerHeight });
+    const measure = () => wrap.current && setGeo({ top: wrap.current.getBoundingClientRect().top + scrollY.get(), vh: innerHeight, stick: navH() + 16 });
     measure();
     const ro = new ResizeObserver(measure);
     ro.observe(document.body);
@@ -531,7 +532,7 @@ function Stack() {
     <div ref={wrap} className="relative mt-14">
       <StackProgress scrollY={scrollY} geo={geo} />
       {services.items.map((s, i) => (
-        <div key={s.id} className="sticky h-[100vh] last:h-auto" style={{ top: STICK + i * STEP }}>
+        <div key={s.id} className="sticky h-[100vh] last:h-auto" style={{ top: `calc(${STICK_CSS} + ${i * STEP}px)` }}>
           <Card i={i} scrollY={scrollY} geo={geo} stacked />
         </div>
       ))}
@@ -542,7 +543,7 @@ function Stack() {
 export default function Services() {
   const pin = useStackable();
   const still = useMotionValue(0);
-  const geo = { top: 0, vh: 1 };
+  const geo = { top: 0, vh: 1, stick: 0 };
   return (
     <section id="services" data-theme="light" className="section bg-white">
       <div className="container-site">

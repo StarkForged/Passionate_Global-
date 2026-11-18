@@ -3,7 +3,11 @@
 @tailwind utilities;
 
 @layer base {
+  /* --nav-h = fixed header's top gap + bar height (+ a hair). Every sticky element sits at calc(var(--nav-h) + 16px),
+     sections scroll to var(--nav-h) below the top (CSS scroll-margin + Lenis offset in lib/scroll.ts). */
+  :root { --nav-h: 76px; }
   html { -webkit-text-size-adjust: 100%; }
+  section[id] { scroll-margin-top: var(--nav-h); }
   html.lenis, html.lenis body { height: auto; }
   .lenis.lenis-smooth { scroll-behavior: auto !important; }
   body { @apply bg-ice text-ink font-sans antialiased; overflow-x: hidden; font-feature-settings: "ss01", "cv11"; }
@@ -115,3 +119,28 @@
 @keyframes orb-c { 0%,100% { transform: translate(0,0); } 50% { transform: translate(28px,24px); } }
 @media (prefers-reduced-motion: reduce) { .glass-orb, .glass-icon-rings { animation: none !important; } }
 .glass.glass-hover:hover { background: linear-gradient(160deg, rgba(90,165,255,.22), rgba(255,255,255,.5)); box-shadow: inset 0 1px 0 rgba(255,255,255,.95), 0 30px 64px -24px rgba(3,60,140,.36); }
+
+/* ---- Header (round 3): always visible, never translated off-screen. Two states, 250ms CSS transition.
+   top   = top of the page over the hero (as before)
+   light / dark = scrolled: compact (-4px), opaque enough that text behind is never legible, blur + hairline + shadow,
+   subtle liquid-glass top rim. No transform / filter / opacity / mask on any ancestor (would kill the blur). ---- */
+.nav-bar {
+  padding-block: 8px;
+  -webkit-backdrop-filter: blur(20px) saturate(180%); backdrop-filter: blur(20px) saturate(180%);
+  transition: background-color .25s ease, border-color .25s ease, box-shadow .25s ease, padding .25s ease, color .25s ease;
+  animation: nav-in .6s cubic-bezier(.22,1,.36,1) both;
+}
+.nav-bar[data-state="top"] { background-color: rgba(1,21,45,.40); border-color: rgba(255,255,255,.10); color: #fff; }
+.nav-bar[data-state="dark"] {
+  padding-block: 6px; background-color: rgba(1,21,45,.78); border-color: rgba(255,255,255,.12); color: #fff;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.10), 0 12px 32px -14px rgba(0,0,0,.55);
+}
+.nav-bar[data-state="light"] {
+  padding-block: 6px; background-color: rgba(255,255,255,.86); border-color: rgba(1,21,45,.08); color: #01152D;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.95), 0 1px 3px rgba(1,21,45,.06), 0 12px 36px -16px rgba(1,21,45,.30);
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .nav-bar[data-state="top"], .nav-bar[data-state="dark"] { background-color: rgba(1,21,45,.95); }
+  .nav-bar[data-state="light"] { background-color: rgba(255,255,255,.95); }
+}
+@keyframes nav-in { from { opacity: 0; transform: translateY(-16px); } to { opacity: 1; transform: none; } }

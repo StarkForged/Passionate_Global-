@@ -96,7 +96,7 @@ function Story() {
           </div>
         ))}
       </div>
-      <div><div className="sticky top-[calc(50vh-240px)] my-[calc(36vh-240px)]"><Panel step={step} /></div></div>
+      <div><div className="sticky top-[max(calc(var(--nav-h)+16px),calc(50vh-240px))] my-[calc(36vh-240px)]"><Panel step={step} /></div></div>
     </div>
   );
 }

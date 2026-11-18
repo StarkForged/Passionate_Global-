@@ -26,9 +26,12 @@ export function lockScroll(lock: boolean) {
   document.documentElement.style.overflow = lock ? 'hidden' : '';
 }
 
+/** Fixed header height + top gap (CSS custom property `--nav-h`, index.css), in px. */
+export const navH = () => parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-h')) || 76;
+
 export function scrollToHash(hash: string) {
   const el = document.querySelector(hash) as HTMLElement | null;
   if (!el) return;
-  if (lenis) lenis.scrollTo(el, { offset: -20, duration: 1.4 });
+  if (lenis) lenis.scrollTo(el, { offset: hash === '#home' ? 0 : -navH(), duration: 1.4 });
   else el.scrollIntoView({ behavior: 'smooth' });
 }

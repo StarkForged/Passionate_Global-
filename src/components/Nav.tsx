@@ -8,25 +8,23 @@ import { lockScroll, scrollToHash } from '@/lib/scroll';
 
 export default function Nav() {
   const [light, setLight] = useState(false);
-  const [hidden, setHidden] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const [active, setActive] = useState('');
   const [open, setOpen] = useState(false);
 
+  // Always visible (client round 3: no hide-on-scroll). Two states: top of page / scrolled (more opaque + compact).
   useEffect(() => {
-    let last = 0;
     const on = () => {
       const y = scrollY;
       const hero = document.getElementById('home')?.offsetHeight ?? 800;
       // light mode on light sections: check what's under the nav
       const el = document.elementsFromPoint(innerWidth / 2, 40).find((n) => (n as HTMLElement).dataset?.theme);
       setLight(y > hero - 80 && (el as HTMLElement | undefined)?.dataset.theme !== 'dark');
-      setHidden(y > 600 && y > last + 4 && !open);
-      if (y < last - 4) setHidden(false);
-      last = y;
+      setScrolled(y >= 24);
     };
     on(); addEventListener('scroll', on, { passive: true });
     return () => removeEventListener('scroll', on);
-  }, [open]);
+  }, []);
 
   useEffect(() => {
     const io = new IntersectionObserver((es) => es.forEach((e) => e.isIntersecting && setActive('#' + e.target.id)), { rootMargin: '-45% 0px -50% 0px' });
@@ -47,14 +45,9 @@ export default function Nav() {
 
   return (
     <>
-      <motion.header
-        initial={{ y: -40, opacity: 0 }} animate={{ y: hidden ? -110 : 0, opacity: 1 }} transition={{ duration: 0.6, ease: EASE }}
-        className="fixed inset-x-0 top-4 z-50 mx-auto w-[min(1200px,calc(100%-24px))]"
-      >
-        <div className={clsx(
-          'flex items-center gap-4 rounded-full border py-2 pl-5 pr-2 backdrop-blur-xl backdrop-saturate-150 transition-colors duration-500',
-          light ? 'border-navy/[0.07] bg-white/75 text-navy shadow-[0_10px_40px_-18px_rgba(1,21,45,.35)]' : 'border-white/10 bg-[#01152D]/40 text-white',
-        )}>
+      {/* No transform / filter / opacity on this wrapper: it would stop the bar's backdrop blur (see .nav-bar). */}
+      <header className="fixed inset-x-0 top-4 z-50 mx-auto w-[min(1200px,calc(100%-24px))]">
+        <div data-state={!scrolled && !light ? 'top' : light ? 'light' : 'dark'} className="nav-bar flex items-center gap-4 rounded-full border pl-5 pr-2">
           <a href="#home" onClick={go('#home')} aria-label="Passionate Global home"><Logo light={!light} /></a>
           <nav className="mx-auto hidden items-center gap-1 lg:flex" aria-label="Primary">
             {nav.map((n) => (
@@ -73,7 +66,7 @@ export default function Nav() {
             </button>
           </div>
         </div>
-      </motion.header>
+      </header>
 
       <AnimatePresence>
         {open && (
