@@ -1,5 +1,5 @@
 /** Team — reference: ref7 / ref8 ("Personal profile" slide with gradient quote card + profile row). */
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import clsx from 'clsx';
 import { Plus, Quote, X } from 'lucide-react';
@@ -8,42 +8,40 @@ import { EASE, Reveal, SectionHeader } from '@/components/ui';
 import sizes from '@/data/images.json';
 
 const dims = (src: string) => (sizes as Record<string, number[]>)[src] ?? [];
-/** optional per-person photo settings (see content.ts team.founder) */
-type PhotoOpts = { photoFit?: 'cutout' | 'cover'; photoPos?: string };
 
-/** Portrait: the photo when provided, otherwise a branded monogram artwork.
- *  `fit="cutout"`: a transparent cut-out standing on the brand gradient (contained, anchored to the bottom so the
- *  head is never cropped). Otherwise the photo covers the frame; `pos` (CSS object-position) keeps the face in. */
-export function Portrait({ initials, photo, name, className, big, fit, pos }: { initials: string; photo?: string; name: string; className?: string; big?: boolean; fit?: 'cutout' | 'cover'; pos?: string }) {
+/** 3D glass logo watermark (glass variant = light backgrounds only). */
+const WATERMARK = { src: 'img/brand/logo-3d-glass-600.webp', srcSet: 'img/brand/logo-3d-glass-256.webp 256w, img/brand/logo-3d-glass-600.webp 600w, img/brand/logo-3d-glass-1200.webp 1200w' };
+
+/** Portrait (round 5, client: "the main focus should be the photo, the logo in the background").
+ *  Light neutral backdrop, the 3D glass logo large and quiet behind the person like a halo (hover: -4deg, 1.03),
+ *  the transparent cut-out on top with a soft drop shadow so the person separates from the background.
+ *  Cut-outs come from scripts/optimise-images.py, all framed identically (4:4.6, eyes at 35%), so `pos` is only a
+ *  fine-tune. No photo -> monogram on the same backdrop. `sizes` = the rendered width for srcset. */
+export function Portrait({ initials, photo, name, className, big, pos, sizes: sz }: { initials: string; photo?: string; name: string; className?: string; big?: boolean; pos?: string; sizes: string }) {
   const [w, h] = photo ? dims(photo) : [];
-  const globe = (
-    <svg className="absolute -bottom-[30%] -right-[25%] h-[110%] w-[110%] text-white/[0.09]" viewBox="0 0 200 200" aria-hidden>
-      <circle cx="100" cy="100" r="96" fill="none" stroke="currentColor" />
-      {[20, 45, 70].map((rx) => <ellipse key={rx} cx="100" cy="100" rx={rx} ry="96" fill="none" stroke="currentColor" />)}
-      {[-60, -30, 0, 30, 60].map((y) => <ellipse key={y} cx="100" cy={100 + y} rx={Math.sqrt(96 * 96 - y * y)} ry={8} fill="none" stroke="currentColor" />)}
-    </svg>
-  );
+  const small = photo?.replace(/\.webp$/, '-480.webp');
+  const srcSet = photo && small && dims(small).length ? `${small} 480w, ${photo} ${w}w` : undefined;
   return (
-    <div className={clsx('isolate overflow-hidden', className)} style={{ background: 'radial-gradient(120% 100% at 25% 0%, #5AA5FF 0%, #0361DB 42%, #01152D 100%)' }}>
+    <div className={clsx('isolate overflow-hidden bg-[linear-gradient(180deg,#FFFFFF_0%,#EEF3F9_100%)]', className)}>
+      <img src={WATERMARK.src} srcSet={WATERMARK.srcSet} sizes={big ? '360px' : '(min-width: 768px) 28vw, 80vw'} alt="" aria-hidden width={600} height={582} loading="lazy" decoding="async"
+        className="pointer-events-none absolute left-[10%] top-[5%] w-[80%] select-none opacity-[.17] [filter:saturate(.8)] transition-transform duration-[1.2s] ease-out group-hover:-rotate-[4deg] group-hover:scale-[1.03]" />
       {photo ? (
-        <>
-          {fit === 'cutout' && globe}
-          <img src={photo} alt={`Portrait of ${name}`} width={w} height={h} loading="lazy" decoding="async"
-            className={clsx('absolute h-full w-full', fit === 'cutout' ? 'inset-x-0 bottom-0 top-[6%] h-[94%] object-contain' : 'inset-0 object-cover')}
-            style={{ objectPosition: pos ?? (fit === 'cutout' ? '50% 100%' : '50% 25%') }} />
-          {/* keeps the name / role overlay legible */}
-          <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_50%,rgba(0,9,21,.72))]" />
-        </>
+        <img src={photo} srcSet={srcSet} sizes={sz} alt={`Portrait of ${name}`} width={w} height={h} loading="lazy" decoding="async"
+          className="absolute inset-0 h-full w-full object-cover [filter:drop-shadow(0_24px_32px_rgba(1,21,45,.18))]"
+          style={{ objectPosition: pos ?? '50% 0%' }} />
       ) : (
-        <>
-          {globe}
-          <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_45%,rgba(0,9,21,.55))]" />
-          <span className={clsx('absolute left-[8%] top-[6%] font-display font-light leading-none tracking-[-0.06em] text-white/95', big ? 'text-[clamp(6rem,11vw,10rem)]' : 'text-[clamp(4.5rem,7vw,6rem)]')}>{initials}</span>
-        </>
+        <span className={clsx('absolute inset-0 grid place-items-center font-display font-light leading-none tracking-[-0.06em] text-navy/80', big ? 'text-[clamp(6rem,11vw,9rem)]' : 'text-[clamp(4.5rem,7vw,6rem)]')}>{initials}</span>
       )}
+      {/* faint rim light along the top edge */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white to-transparent" />
     </div>
   );
 }
+
+/** Tenure as a small light pill (off the photo, round 5). */
+const Pill = ({ children }: { children: ReactNode }) => (
+  <span className="inline-flex h-7 shrink-0 items-center rounded-full bg-ice px-3 text-[12px] font-semibold text-brand ring-1 ring-brand/10">{children}</span>
+);
 
 function Member({ m, i }: { m: (typeof team.members)[number]; i: number }) {
   const [open, setOpen] = useState(false);
@@ -51,12 +49,7 @@ function Member({ m, i }: { m: (typeof team.members)[number]; i: number }) {
     <motion.article initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.9, ease: EASE, delay: i * 0.1 }}
       className="group relative overflow-hidden rounded-[2rem] bg-white shadow-lift">
       <div className="relative aspect-[4/4.6]">
-        <Portrait initials={m.initials} photo={m.photo} name={m.name} fit={(m as PhotoOpts).photoFit} pos={(m as PhotoOpts).photoPos} className="absolute inset-0 transition-transform duration-[1.2s] ease-out group-hover:scale-[1.04]" />
-        <span className="absolute right-4 top-4 rounded-full border border-white/20 bg-navy/50 px-3 py-1 text-[12px] font-semibold text-white backdrop-blur-md">{m.tenure}</span>
-        <div className="absolute inset-x-0 bottom-0 p-6 text-white">
-          <h3 className="font-display text-[26px] font-semibold tracking-[-0.03em]">{m.name}</h3>
-          <p className="mt-0.5 text-[14px] font-medium text-[#BFDCFF]">{m.role}</p>
-        </div>
+        <Portrait initials={m.initials} photo={m.photo} name={m.name} pos={m.photoPos} sizes="(min-width: 1280px) 384px, (min-width: 768px) 31vw, calc(100vw - 32px)" className="absolute inset-0" />
         {/* bio overlay */}
         <AnimatePresence>
           {open && (
@@ -69,7 +62,14 @@ function Member({ m, i }: { m: (typeof team.members)[number]; i: number }) {
           )}
         </AnimatePresence>
       </div>
-      <div className="flex items-center justify-between gap-4 p-5">
+      <div className="flex items-start justify-between gap-3 border-t border-navy/[0.06] px-6 pt-5">
+        <div>
+          <h3 className="font-display text-[24px] font-semibold leading-tight tracking-[-0.03em] text-navy">{m.name}</h3>
+          <p className="mt-0.5 text-[15px] font-medium text-brand">{m.role}</p>
+        </div>
+        <Pill>{m.tenure}</Pill>
+      </div>
+      <div className="flex items-center justify-between gap-4 px-6 pb-6 pt-3">
         <p className="line-clamp-2 text-[14px] leading-relaxed text-muted">{m.bio[0]}</p>
         <button onClick={() => setOpen((o) => !o)} aria-label={open ? `Close ${m.name} bio` : `Read ${m.name} bio`} aria-expanded={open}
           className={clsx('grid h-11 w-11 shrink-0 place-items-center rounded-full transition-all duration-300', open ? 'bg-navy text-white' : 'bg-ice text-brand hover:bg-brand hover:text-white')}>
@@ -89,12 +89,14 @@ export default function Team() {
 
         <Reveal className="mt-16">
           <article className="grid overflow-hidden rounded-[2.5rem] bg-white shadow-lift lg:grid-cols-[440px_1fr]">
-            <div className="relative min-h-[420px]">
-              <Portrait big initials={f.initials} photo={f.photo} name={f.name} fit={f.photoFit} pos={f.photoPos} className="absolute inset-0" />
-              <div className="absolute inset-x-0 bottom-0 p-8 text-white">
-                <span className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[12px] font-semibold backdrop-blur-md">{f.tenure} experience</span>
-                <h3 className="mt-4 font-display text-[clamp(2rem,3.4vw,2.8rem)] font-semibold leading-none tracking-[-0.04em]">{f.name}</h3>
-                <p className="mt-2 text-[15px] font-medium text-[#BFDCFF]">{f.role}</p>
+            <div className="group flex flex-col p-3 sm:p-4 lg:border-r lg:border-navy/[0.06]">
+              <div className="relative aspect-[4/4.6] overflow-hidden rounded-[2rem] ring-1 ring-navy/[0.05]">
+                <Portrait big initials={f.initials} photo={f.photo} name={f.name} pos={f.photoPos} sizes="(min-width: 1024px) 408px, calc(100vw - 56px)" className="absolute inset-0" />
+              </div>
+              <div className="px-4 pb-5 pt-6 sm:px-5">
+                <Pill>{f.tenure} experience</Pill>
+                <h3 className="mt-3 font-display text-[clamp(1.75rem,2.6vw,2.25rem)] font-semibold leading-none tracking-[-0.04em] text-navy">{f.name}</h3>
+                <p className="mt-2 text-[15px] font-medium text-brand">{f.role}</p>
               </div>
             </div>
             <div className="flex flex-col p-8 sm:p-12">
