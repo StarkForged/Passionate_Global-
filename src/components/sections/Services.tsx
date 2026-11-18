@@ -3,7 +3,7 @@
  * and dims as the next slides over it). One calm illustration per service; no invented data
  * (skeleton bars instead of names / amounts).
  */
-import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react';
 import { AnimatePresence, motion, useAnimationFrame, useInView, useMotionValue, useMotionValueEvent, useScroll, useTransform, type MotionValue } from 'framer-motion';
 import { Check, UserRound, Inbox, CircleCheck } from 'lucide-react';
 import { services } from '@/data/content';
@@ -70,19 +70,125 @@ function StagePill({ label, on, className, style }: { label: string; on: boolean
   );
 }
 
-/** Phones: the art scales too small for labels, so the stages sit underneath as chips. */
-function StageChips() {
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { amount: 0.3 });
-  const lit = useStagesLit(inView);
+/* Phones (< 768px, client round 3): the stage labels sit ON the illustration, as on desktop. The path is redrawn as a
+ * vertical gentle S-curve with 5 nodes; each label is a compact pill beside its node, alternating right / left. One
+ * candidate card travels node to node on the side opposite the current label, crossing the line at mid-gap (where the
+ * curve crosses too), so it never covers a label: rows are G apart, the card is CH tall, pills 24px, which leaves
+ * 4px clearance while the card slides across. Layout is computed from the measured pill widths and the box width
+ * (no scaling, so text stays 12-13px), verified at 360 / 390 / 430. Reaching a node lights its label; labels stay lit
+ * until the cycle resets. Reduced motion: card parked on the last node, all stages lit. */
+const MG = 10, G = 70, CH = 38, PAD = 37, MOBILE_H = PAD * 2 + G * 4; // 354px box
+const PILL_GAP = 14, CARD_GAP = 10; // from the node centre to the pill / card edge
+const side = (k: number) => (k % 2 ? -1 : 1); // +1: label right of the line (card left), -1: the reverse
+const M_IN = 400, M_DWELL = 700, M_DOWN = 320, M_SLIDE = 460, M_END = 1600, M_OUT = 400, M_BLANK = 400;
+const M_SEG = M_DWELL + M_DOWN * 2 + M_SLIDE;
+const M_CYCLE = M_IN + 4 * M_SEG + M_END + M_OUT + M_BLANK;
+const ease = (v: number) => (v < 0.5 ? 4 * v * v * v : 1 - Math.pow(-2 * v + 2, 3) / 2);
+type MGeo = { W: number; cw: number; nodes: number[] };
+const rowY = (k: number) => PAD + k * G;
+const cardX = (g: MGeo, k: number) => g.nodes[k] - side(k) * (CARD_GAP + g.cw / 2);
+
+/** Card centre, opacity and lit count at time t (ms) in the cycle. */
+function mobileFrame(t: number, g: MGeo) {
+  if (t < M_IN) return { x: cardX(g, 0), y: rowY(0), o: t / M_IN, lit: t >= M_IN / 2 ? 1 : 0 };
+  t -= M_IN;
+  if (t < 4 * M_SEG) {
+    const k = Math.floor(t / M_SEG); let u = t - k * M_SEG;
+    const y0 = rowY(k), mid = y0 + G / 2, a = cardX(g, k), b = cardX(g, k + 1);
+    if (u < M_DWELL) return { x: a, y: y0, o: 1, lit: k + 1 };
+    u -= M_DWELL;
+    if (u < M_DOWN) return { x: a, y: y0 + (G / 2) * ease(u / M_DOWN), o: 1, lit: k + 1 };
+    u -= M_DOWN;
+    if (u < M_SLIDE) return { x: a + (b - a) * ease(u / M_SLIDE), y: mid, o: 1, lit: k + 1 };
+    u -= M_SLIDE;
+    return { x: b, y: mid + (G / 2) * ease(Math.min(1, u / M_DOWN)), o: 1, lit: k + 1 };
+  }
+  t -= 4 * M_SEG;
+  if (t < M_END) return { x: cardX(g, 4), y: rowY(4), o: 1, lit: 5 };
+  t -= M_END;
+  if (t < M_OUT) return { x: cardX(g, 4), y: rowY(4), o: 1 - t / M_OUT, lit: 5 };
+  return { x: cardX(g, 0), y: rowY(0), o: 0, lit: 0 };
+}
+
+function RecruitmentMobile() {
+  const box = useRef<HTMLDivElement>(null);
+  const pills = useRef<(HTMLSpanElement | null)[]>([]);
+  const card = useRef<HTMLDivElement>(null);
+  const still = prefersReducedMotion();
+  const inView = useInView(box, { amount: 0.2 });
+  const seen = useInView(box, { once: true, amount: 0.4 });
+  const [geo, setGeo] = useState<MGeo | null>(null);
+  const [lit, setLit] = useState(still ? stages.length : 0);
+
+  useLayoutEffect(() => {
+    const el = box.current; if (!el) return;
+    const measure = () => {
+      const W = el.clientWidth, inner = W - 2 * MG;
+      const widths = pills.current.map((p) => p?.offsetWidth ?? 110);
+      const cw = Math.min(150, Math.floor(inner / 2 - CARD_GAP));
+      const c = W / 2, amp = 16;
+      // each node shifts towards its label (a gentle wave), clamped so pill and card both stay inside the box
+      const nodes = widths.map((w, k) => {
+        const s = side(k);
+        const lo = s > 0 ? MG + cw + CARD_GAP : MG + w + PILL_GAP;
+        const hi = s > 0 ? W - MG - w - PILL_GAP : W - MG - cw - CARD_GAP;
+        return lo > hi ? (lo + hi) / 2 : Math.max(lo, Math.min(hi, c + s * amp));
+      });
+      setGeo((g) => (g && g.W === W && g.cw === cw && g.nodes.every((n, k) => n === nodes[k]) ? g : { W, cw, nodes }));
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el); pills.current.forEach((p) => p && ro.observe(p));
+    return () => ro.disconnect();
+  }, []);
+
+  const place = (f: { x: number; y: number; o: number }, g: MGeo) => {
+    const el = card.current; if (!el) return;
+    el.style.transform = `translate(${f.x - g.cw / 2}px, ${f.y - CH / 2}px)`;
+    el.style.opacity = String(f.o);
+  };
+  useLayoutEffect(() => { if (geo && still) place({ x: cardX(geo, 4), y: rowY(4), o: 1 }, geo); }, [geo, still]);
+  useAnimationFrame(() => {
+    if (!geo || still || !inView) return;
+    const f = mobileFrame((performance.now() - T0) % M_CYCLE, geo);
+    place(f, geo);
+    setLit((v) => (v === f.lit ? v : f.lit));
+  });
+
+  const path = geo ? geo.nodes.map((x, k) => (k === 0 ? `M ${x} ${rowY(0)}` : `C ${geo.nodes[k - 1]} ${rowY(k - 1) + G / 2} ${x} ${rowY(k) - G / 2} ${x} ${rowY(k)}`)).join(' ') : '';
   return (
-    <div ref={ref} className="flex flex-wrap justify-center gap-2 px-4 pb-6">
-      {stages.map((s, k) => <StagePill key={s} label={s} on={k < lit} />)}
+    <div ref={box} className="relative w-full overflow-hidden" style={{ height: MOBILE_H }}>
+      {geo && (
+        <svg width={geo.W} height={MOBILE_H} className="absolute inset-0" aria-hidden>
+          <defs><linearGradient id="rgm" x1="0" y1="0" x2="0" y2="1"><stop stopColor="#5AA5FF" /><stop offset="1" stopColor="#0361DB" /></linearGradient></defs>
+          <path d={path} fill="none" stroke="rgba(3,97,219,.15)" strokeWidth="2" strokeDasharray="4 8" strokeLinecap="round" />
+          <motion.path d={path} fill="none" stroke="url(#rgm)" strokeWidth="3" strokeLinecap="round" initial={{ pathLength: still ? 1 : 0 }} animate={seen ? { pathLength: 1 } : undefined} transition={{ duration: 1.6, ease: EASE }} />
+          {geo.nodes.map((x, k) => <circle key={k} cx={x} cy={rowY(k)} r={k === 4 ? 7 : 5.5} fill={k < lit ? '#0361DB' : '#fff'} stroke={k < lit ? '#0361DB' : '#9CC8FF'} strokeWidth="2.5" style={{ transition: 'fill .4s, stroke .4s' }} />)}
+        </svg>
+      )}
+      {stages.map((s, k) => {
+        const x = geo?.nodes[k] ?? 0, right = side(k) > 0, on = k < lit;
+        return (
+          <span key={s} ref={(el) => { pills.current[k] = el; }}
+            className={cn('absolute left-0 top-0 flex items-center gap-1 whitespace-nowrap rounded-full border px-[10px] py-1 text-[12px] font-semibold leading-4 transition-[background-color,color,box-shadow,border-color] duration-500 min-[380px]:text-[13px]',
+              on ? 'border-transparent bg-grad text-white shadow-blue' : 'border-navy/10 bg-white text-muted shadow-soft')}
+            style={{ visibility: geo ? 'visible' : 'hidden', transform: `translate(${right ? x + PILL_GAP : x - PILL_GAP}px, ${rowY(k)}px) translate(${right ? '0' : '-100%'}, -50%)` }}>
+            <span className="grid w-3 shrink-0 place-items-center">{on ? <Check className="h-3 w-3" strokeWidth={3} /> : <span className="h-1.5 w-1.5 rounded-full bg-navy/20" />}</span>
+            {s}
+          </span>
+        );
+      })}
+      {geo && (
+        <div ref={card} aria-hidden className="absolute left-0 top-0 flex items-center gap-2 rounded-xl bg-white px-2.5 shadow-lift will-change-transform" style={{ width: geo.cw, height: CH, opacity: 0 }}>
+          <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-grad text-white"><UserRound className="h-3 w-3" /></span>
+          <span className="flex flex-1 flex-col gap-1.5"><span className="h-2 w-[80%] rounded-full bg-navy/15" /><span className="h-2 w-[50%] rounded-full bg-navy/[0.08]" /></span>
+        </div>
+      )}
     </div>
   );
 }
 
-function RecruitmentArt({ compact = false }: { compact?: boolean }) {
+function RecruitmentArt() {
   const ref = useRef<HTMLDivElement>(null);
   const seen = useInView(ref, { once: true, amount: 0.4 });
   const inView = useInView(ref, { amount: 0.1 });
@@ -107,12 +213,12 @@ function RecruitmentArt({ compact = false }: { compact?: boolean }) {
         <defs><linearGradient id="rg" x1="0" x2="1"><stop stopColor="#5AA5FF" /><stop offset="1" stopColor="#0361DB" /></linearGradient></defs>
         {STAGE_GEO.map((g, k) => (
           <g key={k}>
-            {!compact && <line x1={g.dot[0]} y1={g.dot[1]} x2={g.line[0]} y2={g.line[1]} stroke={k < lit ? 'rgba(3,97,219,.45)' : 'rgba(3,97,219,.18)'} strokeWidth="1.5" strokeDasharray="2 4" />}
+            <line x1={g.dot[0]} y1={g.dot[1]} x2={g.line[0]} y2={g.line[1]} stroke={k < lit ? 'rgba(3,97,219,.45)' : 'rgba(3,97,219,.18)'} strokeWidth="1.5" strokeDasharray="2 4" />
             <circle cx={g.dot[0]} cy={g.dot[1]} r={k === 4 ? 8 : 6} fill={k < lit ? '#0361DB' : '#fff'} stroke={k < lit ? '#0361DB' : '#9CC8FF'} strokeWidth="2.5" />
           </g>
         ))}
       </svg>
-      {!compact && stages.map((s, k) => {
+      {stages.map((s, k) => {
         const g = STAGE_GEO[k].pill;
         return <StagePill key={s} label={s} on={k < lit} className="absolute" style={{ left: g.left, top: g.top, transform: `translate(${g.x}, ${g.y})` }} />;
       })}
@@ -319,7 +425,7 @@ function BusinessArt() {
   );
 }
 
-const arts: ((compact: boolean) => ReactNode)[] = [(c) => <RecruitmentArt compact={c} />, () => <FinanceArt />, (c) => <OohArt compact={c} />, () => <BusinessArt />];
+const arts: ((compact: boolean) => ReactNode)[] = [() => <RecruitmentArt />, () => <FinanceArt />, (c) => <OohArt compact={c} />, () => <BusinessArt />];
 const artSize = [[520, 380], [420, 440], [440, 470], [420, 420]];
 const artSizeCompact = [[520, 380], [420, 440], [340, 340], [420, 420]];
 
@@ -342,7 +448,6 @@ function Fit({ i }: { i: number }) {
       <div ref={ref} className="relative w-full min-w-0 flex-1 overflow-hidden" style={{ minHeight: lg ? 360 : Math.round(h * s + 40) }}>
         <div className="absolute left-1/2 top-1/2" style={{ width: w, height: h, transform: `translate(-50%, -50%) scale(${s})` }}>{arts[i](compact)}</div>
       </div>
-      {compact && i === 0 && <StageChips />}
       {compact && i === 2 && <OohLegend />}
     </div>
   );
@@ -368,6 +473,7 @@ function Card({ i, scrollY, geo, stacked }: { i: number; scrollY: MotionValue<nu
   // dim to ~85% with an overlay in the card's own tone (opacity would let the card underneath show through)
   const dim = useTransform(scrollY, [coverFrom + (coverTo - coverFrom) * 0.5, Math.max(coverFrom + 2, coverTo)], [0, last ? 0 : 1]);
   const lead = 'lead' in s && s.lead;
+  const phone = useMedia('(max-width: 767px)');
   return (
     <motion.article style={stacked ? { scale, transformOrigin: 'top center', height: CARD_H } : undefined}
       className={cn('relative grid overflow-hidden rounded-[2rem] shadow-lift lg:min-h-[520px] lg:grid-cols-[52fr_48fr]', t.card)}>
@@ -385,7 +491,7 @@ function Card({ i, scrollY, geo, stacked }: { i: number; scrollY: MotionValue<nu
           ))}
         </ul>
       </div>
-      <div className={cn('order-first m-3 min-h-0 rounded-[1.5rem] lg:order-2 lg:ml-0', t.panel)}><Fit i={i} /></div>
+      <div className={cn('order-first m-3 min-h-0 rounded-[1.5rem] lg:order-2 lg:ml-0', t.panel)}>{i === 0 && phone ? <RecruitmentMobile /> : <Fit i={i} />}</div>
       {stacked && <motion.div aria-hidden style={{ opacity: dim }} className={cn('pointer-events-none absolute inset-0', t.dark ? 'bg-black/15' : 'bg-navy/[0.06]')} />}
     </motion.article>
   );
