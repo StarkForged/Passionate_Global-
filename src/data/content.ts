@@ -75,6 +75,12 @@ export const purpose = {
   visionLabel: 'Our Vision',
   valuesLabel: 'Our Values',
   coreValuesLabel: 'Core Values',
+  // Chrome pill labels inside the luminous screens (round 4): words taken from the statements only.
+  screenPills: {
+    mission: ['Operational excellence', 'Long-term success'],
+    vision: 'Globally trusted',
+    values: 'Our core values',
+  },
 };
 
 export const why = {
