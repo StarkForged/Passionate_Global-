@@ -1,18 +1,21 @@
 /**
  * Mission / Vision / Values — "sticky scroll story" (Aceternity Sticky Scroll Reveal pattern, driven by
- * page scroll instead of an inner scroller). Reference: ref7 / ref8 hexagon badges.
- * One statement readable at a time; the sticky glass panel crossfades Mission (Target) → Vision (Eye) → Values
- * (honeycomb of mini glass hexagons) while the orb light behind it moves per step (round 2: no navy panel).
+ * page scroll instead of an inner scroller). One statement readable at a time.
+ * Round 3 (client: the frosted glass blended into the background): the sticky panel is a very light card with a crisp
+ * dot grid and a vivid blue blob; a clear iOS-style Liquid Glass lens sits over them, so the dots and the blob edge
+ * visibly bend through it. Mission (Target) -> Vision (Eye) -> Values (six icons, one lit at a time). On each step the
+ * lens squashes and settles while its content crossfades; the blob moves (bottom-left / top-right / centre-left).
  */
 import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion, useMotionValueEvent, useScroll } from 'framer-motion';
-import { Target, Eye, type LucideIcon } from 'lucide-react';
+import { Target, Eye } from 'lucide-react';
 import { mission, vision, values, purpose } from '@/data/content';
 import { EASE } from '@/components/ui';
 import { cn } from '@/lib/utils';
 import { useMedia, usePinnable } from '@/hooks/useMedia';
 import ValuesWheel, { valueIcons } from './ValuesWheel';
-import { GlassBackdrop, GlassHexagon, GlassIcon, GlassPanel } from '@/components/ui/glass';
+import { GlassBackdrop } from '@/components/ui/glass';
+import { LensBlob, LiquidGlass, LiquidLayers } from '@/components/ui/liquid-glass';
 import { prefersReducedMotion } from '@/lib/scroll';
 
 
@@ -22,59 +25,64 @@ const blocks = [
   { label: purpose.valuesLabel, text: `${values.slice(0, -1).join(', ')} and ${values[values.length - 1]}.` },
 ];
 
-/** Glass hexagon with a GlassIcon inside (round 2: no solid navy / blue shapes). */
-function GlassBadge({ icon, size }: { icon: LucideIcon; size: number }) {
-  return <GlassHexagon width={size} glow><GlassIcon icon={icon} size={Math.round(size * 0.3)} active /></GlassHexagon>;
-}
-
-/** Values: honeycomb of 6 mini glass hexagons; the lit one gets the blue-tint glass. */
-function Honeycomb({ size = 96, animate = true }: { size?: number; animate?: boolean }) {
+/** Values inside the lens: the six value icons, one lit (brand + soft glow) at a time. */
+function ValuesGrid({ size, animate = true }: { size: number; animate?: boolean }) {
   const [on, setOn] = useState(0);
   useEffect(() => {
     if (!animate || prefersReducedMotion()) return;
     const id = setInterval(() => setOn((v) => (v + 1) % 6), 1100);
     return () => clearInterval(id);
   }, [animate]);
-  const h = size * 1.1547, gap = 8;
-  // 3 columns x 2 rows, second row offset by half a cell (honeycomb)
+  const icon = Math.round(size * 0.13);
   return (
-    <div className="relative" style={{ width: size * 3.5 + gap * 3, height: h * 1.75 + gap }}>
-      {valueIcons.map((Icon, i) => {
-        const row = i < 3 ? 0 : 1, col = i % 3;
-        return (
-          <div key={i} className="absolute" style={{ left: col * (size + gap) + row * (size / 2 + gap / 2), top: row * (h * 0.75 + gap) }}>
-            <GlassHexagon width={size} tint={on === i} glow={on === i} shadow={false}>
-              <Icon style={{ width: size * 0.3, height: size * 0.3 }} strokeWidth={1.6} className={cn('transition-colors duration-500', on === i ? 'text-brand' : 'text-navy/70')} />
-            </GlassHexagon>
-          </div>
-        );
-      })}
+    <div className="grid grid-cols-3" style={{ gap: `${Math.round(size * 0.07)}px ${Math.round(size * 0.09)}px` }}>
+      {valueIcons.map((Icon, i) => (
+        <Icon key={i} style={{ width: icon, height: icon }} strokeWidth={1.7}
+          className={cn('transition-[color,filter] duration-500', on === i ? 'lg-icon-glow text-brand' : 'text-navy/55')} />
+      ))}
     </div>
   );
 }
 
-/** Blur crossfade that ends at `filter: none` (a lingering blur(0) would stop the glass inside from blurring). */
-const swap = {
-  initial: { opacity: 0, scale: 0.96, filter: 'blur(10px)' },
-  animate: { opacity: 1, scale: 1, filter: 'blur(0px)', transitionEnd: { filter: 'none' } },
-  exit: { opacity: 0, scale: 1.03, filter: 'blur(10px)' },
-};
+/** Blob offset per step, as a fraction of the lens size: Mission bottom-left, Vision top-right, Values centre-left. */
+const BLOB = [[-0.3, 0.26], [0.3, -0.26], [-0.38, 0.04]] as const;
 
-/** The sticky panel: glass on a local orb backdrop whose light moves per step. */
+/** Light card + dot grid + blob, with the liquid lens over them. */
+function LensPanel({ step, lens, counter = false, className }: { step: number; lens: number; counter?: boolean; className?: string }) {
+  const [bx, by] = BLOB[step];
+  const content = step === 0 ? <Target className="lg-icon-glow text-brand" style={{ width: lens * 0.3, height: lens * 0.3 }} strokeWidth={1.5} />
+    : step === 1 ? <Eye className="lg-icon-glow text-brand" style={{ width: lens * 0.3, height: lens * 0.3 }} strokeWidth={1.5} />
+    : <ValuesGrid size={lens} />;
+  return (
+    <div className={cn('relative overflow-hidden rounded-[2rem] border border-white bg-[linear-gradient(160deg,#FFFFFF_0%,#EDF3FA_100%)] shadow-[0_24px_60px_-28px_rgba(3,60,140,.32)]', className)}>
+      <LensBlob radius={lens * 0.46} dx={bx * lens} dy={by * lens} />
+      {/* crisp dots above the blob, so both bend through the lens */}
+      <div aria-hidden className="lg-dots absolute inset-0 [mask-image:radial-gradient(closest-side,#000_60%,transparent)]" />
+      <div className="absolute inset-0 grid place-items-center">
+        <LiquidGlass refract pulse={step} style={{ width: lens, height: lens }}>
+          <AnimatePresence initial={false}>
+            <motion.div key={step} className="absolute inset-0 grid place-items-center"
+              initial={{ opacity: 0, scale: 0.94, filter: 'blur(6px)' }} animate={{ opacity: 1, scale: 1, filter: 'blur(0px)', transitionEnd: { filter: 'none' } }} exit={{ opacity: 0, scale: 1.04, filter: 'blur(6px)' }} transition={{ duration: 0.45, ease: EASE }}>
+              {content}
+            </motion.div>
+          </AnimatePresence>
+        </LiquidGlass>
+      </div>
+      {counter && (
+        <span className="lg lg-pill absolute bottom-6 left-6 px-3.5 py-1.5 text-[12px] font-semibold uppercase tabular-nums tracking-[0.14em] text-brand">
+          <LiquidLayers /><span className="relative">0{step + 1} / 03</span>
+        </span>
+      )}
+    </div>
+  );
+}
+
+/** The sticky panel, on a soft local orb glow whose light moves per step. */
 function Panel({ step }: { step: number }) {
   return (
     <div className="relative isolate aspect-square w-full max-w-[480px]">
       <GlassBackdrop shift={step} dots={false} bare className="-inset-20" scale={0.9} />
-      <GlassPanel className="absolute inset-0 grid place-items-center overflow-hidden">
-        <AnimatePresence mode="popLayout" initial={false}>
-          <motion.div key={step} {...swap} transition={{ duration: 0.6, ease: EASE }}>
-            {step < 2 ? <GlassBadge icon={step === 0 ? Target : Eye} size={236} /> : <Honeycomb />}
-          </motion.div>
-        </AnimatePresence>
-        <span className="glass absolute bottom-6 left-6 rounded-full px-3.5 py-1.5 text-[12px] font-semibold uppercase tabular-nums tracking-[0.14em] text-brand">
-          0{step + 1} / 03
-        </span>
-      </GlassPanel>
+      <LensPanel step={step} lens={264} counter className="absolute inset-0" />
     </div>
   );
 }
@@ -111,9 +119,7 @@ function StoryStatic() {
           className="lg:grid lg:grid-cols-[1fr_440px] lg:items-center lg:gap-20">
           <div className="relative isolate aspect-[4/3] w-full lg:order-2 lg:aspect-square">
             <GlassBackdrop shift={i} dots={false} bare className="-inset-6" scale={0.6} />
-            <GlassPanel className="absolute inset-0 grid place-items-center overflow-hidden">
-              {i < 2 ? <GlassBadge icon={i === 0 ? Target : Eye} size={lg ? 210 : 140} /> : <Honeycomb size={lg ? 96 : 64} />}
-            </GlassPanel>
+            <LensPanel step={i} lens={lg ? 232 : 168} className="absolute inset-0" />
           </div>
           <div>
             <p className="mt-8 text-[12px] font-semibold uppercase tracking-[0.14em] text-brand lg:mt-0">{b.label}</p>

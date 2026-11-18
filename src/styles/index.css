@@ -144,3 +144,46 @@
   .nav-bar[data-state="light"] { background-color: rgba(255,255,255,.95); }
 }
 @keyframes nav-in { from { opacity: 0; transform: translateY(-16px); } to { opacity: 1; transform: none; } }
+
+@layer components {
+/* ---- Liquid Glass (round 3; component in src/components/ui/liquid-glass.tsx) ----
+   .lg = shape + depth; children: .lg-lens (clear fill, light blur, inner light; refraction filter set inline),
+   .lg-gloss (top highlight, follows the pointer), .lg-chroma (1px cyan / pink edge), .lg-rim (specular gradient ring).
+   --lg-px / --lg-py (-1..1) are set from the pointer position. */
+.lg { position: relative; border-radius: 9999px; box-shadow: 0 0 0 .5px rgba(1,21,45,.10), 0 18px 40px -12px rgba(1,21,45,.25), 0 2px 6px rgba(1,21,45,.08); }
+.lg-squircle { border-radius: 36%; }
+.lg-hexagon { border-radius: 0; box-shadow: none; }
+.lg > .lg-lens, .lg > .lg-gloss, .lg > .lg-chroma, .lg > .lg-rim { position: absolute; inset: 0; border-radius: inherit; pointer-events: none; }
+.lg-lens {
+  background: rgba(255,255,255,.12);
+  -webkit-backdrop-filter: blur(3px) saturate(180%) brightness(1.06); backdrop-filter: blur(3px) saturate(180%) brightness(1.06);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.9), inset 0 0 0 1px rgba(255,255,255,.28), inset 0 -8px 20px rgba(3,97,219,.12), inset 0 0 24px rgba(255,255,255,.35);
+  transition: box-shadow .5s ease, background-color .5s ease;
+}
+.lg-gloss {
+  background: radial-gradient(ellipse 72% 38% at calc(30% + var(--lg-px, 0) * 8px) calc(0% + var(--lg-py, 0) * 5px), rgba(255,255,255,.55), rgba(255,255,255,.16) 50%, rgba(255,255,255,0) 78%);
+}
+.lg-chroma { box-shadow: inset 1px 1px 0 rgba(0,190,255,.18), inset -1px -1px 0 rgba(255,70,170,.16); }
+.lg-rim {
+  padding: 1.25px;
+  background: linear-gradient(calc(135deg + var(--lg-px, 0) * 22deg), rgba(255,255,255,.95) 0%, rgba(255,255,255,.45) 20%, rgba(255,255,255,0) 42%, rgba(255,255,255,0) 62%, rgba(1,21,45,.12) 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude;
+}
+/* active (e.g. the selected value node): brighter rim + blue inner glow, never a solid fill */
+.lg.is-active > .lg-lens {
+  background: rgba(255,255,255,.22);
+  box-shadow: inset 0 1px 0 #fff, inset 0 0 16px rgba(61,143,245,.55), inset 0 -8px 20px rgba(3,97,219,.18), 0 0 0 1px rgba(3,97,219,.22), 0 0 22px rgba(90,165,255,.45);
+}
+.lg.is-active > .lg-rim { padding: 1.5px; background: linear-gradient(calc(135deg + var(--lg-px, 0) * 22deg), #fff 0%, rgba(255,255,255,.7) 25%, rgba(156,203,255,.35) 55%, rgba(3,97,219,.35) 100%); }
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .lg-lens { background: rgba(255,255,255,.72); }
+}
+/* what the glass refracts: a crisp dot grid and a saturated slowly drifting blob (radial gradient = blur(60px) look,
+   without the cost of a filter) */
+.lg-dots { background-image: radial-gradient(rgba(3,97,219,.34) 1.3px, transparent 1.7px); background-size: 18px 18px; background-position: center; }
+.lg-blob { animation: lg-blob 11s ease-in-out infinite; will-change: transform; } /* gradient set inline by <LensBlob/> */
+}
+@keyframes lg-blob { 0%,100% { transform: translate(0,0) scale(1); } 33% { transform: translate(18px,-12px) scale(1.04); } 66% { transform: translate(-14px,10px) scale(.97); } }
+.lg-icon-glow { filter: drop-shadow(0 0 10px rgba(61,143,245,.55)); }
+@media (prefers-reduced-motion: reduce) { .lg-blob { animation: none !important; } }
+.lg-pill { box-shadow: 0 10px 22px -12px rgba(1,21,45,.32), 0 1px 3px rgba(1,21,45,.08); }
