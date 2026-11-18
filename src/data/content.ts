@@ -57,9 +57,10 @@ export const about = {
     "We don't measure success by the number of tasks completed. We measure it by the relationships we build, the trust we earn and the value we deliver over time.",
   ],
   punch: ['Because when your business grows,', 'so does ours.'],
-  // Derived from the copy: founder's 14+ yrs, 6 markets, 8 sectors
+  // 21+ yrs: from the client (round 5, Nov 2026: "21+ years of Leadership Experience"); 6 markets, 8 sectors from the copy.
+  // Hitesh's personal bio / tenure badge (team.founder) intentionally still says 14+: open question to the client.
   stats: [
-    { value: 14, suffix: '+', label: 'Years of leadership experience' },
+    { value: 21, suffix: '+', label: 'Years of Leadership Experience' },
     { value: 6, suffix: '', label: 'International markets supported' },
     { value: 8, suffix: '', label: 'Recruitment sectors served' },
   ],
