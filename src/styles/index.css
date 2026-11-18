@@ -128,26 +128,31 @@
 .lum { box-shadow: 0 0 40px -6px rgba(90,165,255,.45), 0 40px 80px -30px rgba(1,21,45,.55); isolation: isolate; color: #fff; }
 .lum-inner {
   position: absolute; inset: 0; border-radius: inherit; overflow: hidden;
+  /* inner light band just inside the rim (the backlit-sheet look) */
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.10), inset 0 0 22px rgba(156,203,255,.28);
   background:
+    /* small intense light sources right at the rim (ref-c: right edge, bottom) */
+    radial-gradient(5% 16% at 100% 56%, rgba(150,205,255,.95), transparent 100%),
+    radial-gradient(12% 5% at 32% 100%, rgba(120,190,255,.9), transparent 100%),
     radial-gradient(40% 40% at 0% 0%, rgba(255,255,255,.10), transparent),
-    radial-gradient(60% 45% at 50% 105%, rgba(22,121,224,.75), transparent 70%),
-    radial-gradient(35% 60% at 103% 60%, rgba(90,165,255,.55), transparent 70%),
+    radial-gradient(60% 45% at 50% 105%, rgba(22,121,224,.85), transparent 70%),
+    radial-gradient(30% 55% at 103% 60%, rgba(30,128,240,.8), rgba(22,121,224,.25) 45%, transparent 72%),
     linear-gradient(165deg, #0A2547 0%, #04183A 45%, #01152D 100%);
 }
 .lum-grid {
   position: absolute; inset: 0;
-  background-image: linear-gradient(rgba(255,255,255,.09) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.09) 1px, transparent 1px);
+  background-image: linear-gradient(rgba(255,255,255,.17) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.17) 1px, transparent 1px);
   background-size: 22px 22px; background-position: center;
-  -webkit-mask-image: radial-gradient(75% 70% at 50% 50%, #000 30%, transparent 100%); mask-image: radial-gradient(75% 70% at 50% 50%, #000 30%, transparent 100%);
+  -webkit-mask-image: radial-gradient(70% 66% at 52% 48%, #000 25%, rgba(0,0,0,.35) 70%, transparent 100%); mask-image: radial-gradient(70% 66% at 52% 48%, #000 25%, rgba(0,0,0,.35) 70%, transparent 100%);
 }
 .lum-hot { position: absolute; inset: 0; opacity: var(--lo, 0); transition: opacity .4s ease; background: radial-gradient(240px circle at var(--lx, 0) var(--ly, 0), rgba(156,203,255,.13), transparent 70%); }
 .lum-sheen { position: absolute; inset: -10% -25%; background: linear-gradient(105deg, transparent 38%, rgba(255,255,255,.16) 48%, rgba(255,255,255,.05) 55%, transparent 64%); }
 .lum-rim, .lum-rim-glow1, .lum-rim-glow2, .lum-rim-hot { position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 3; }
 /* the rim = "electric border": crisp white line + two blurred glow borders; white is brightest top-left / bottom-right */
-.lum-rim { border: 1.5px solid rgba(255,255,255,.92); -webkit-mask-image: linear-gradient(135deg, #000 0%, rgba(0,0,0,.55) 55%, #000 100%); mask-image: linear-gradient(135deg, #000 0%, rgba(0,0,0,.55) 55%, #000 100%); }
-.lum-rim-glow1 { border: 2px solid #BFE0FF; filter: blur(2px); }
-.lum-rim-glow2 { inset: -1px; border: 3px solid #5AA5FF; filter: blur(8px); opacity: .7; }
-.lum-rim-hot { border: 1.5px solid #fff; opacity: var(--lo, 0); transition: opacity .4s ease; -webkit-mask-image: radial-gradient(170px circle at var(--lx, 0) var(--ly, 0), #000, transparent 70%); mask-image: radial-gradient(170px circle at var(--lx, 0) var(--ly, 0), #000, transparent 70%); }
+.lum-rim { inset: 1px; border: 2px solid rgba(255,255,255,.95); -webkit-mask-image: linear-gradient(135deg, #000 0%, rgba(0,0,0,.72) 55%, #000 100%); mask-image: linear-gradient(135deg, #000 0%, rgba(0,0,0,.72) 55%, #000 100%); }
+.lum-rim-glow1 { inset: 1px; border: 2px solid #BFE0FF; filter: blur(2px); opacity: .9; }
+.lum-rim-glow2 { inset: -2px; border: 3px solid #5AA5FF; filter: blur(8px); opacity: .8; }
+.lum-rim-hot { inset: 1px; border: 1.5px solid #fff; opacity: var(--lo, 0); transition: opacity .4s ease; -webkit-mask-image: radial-gradient(170px circle at var(--lx, 0) var(--ly, 0), #000, transparent 70%); mask-image: radial-gradient(170px circle at var(--lx, 0) var(--ly, 0), #000, transparent 70%); }
 .glow-stroke { filter: drop-shadow(0 0 6px #9CCBFF); }
 .glow-icon { filter: drop-shadow(0 0 8px rgba(156,203,255,.9)); }
 
@@ -182,7 +187,7 @@
   -webkit-mask-image: radial-gradient(70% 60% at 50% 45%, #000 25%, transparent 100%); mask-image: radial-gradient(70% 60% at 50% 45%, #000 25%, transparent 100%);
 }
 .lum-flare {
-  width: 760px; height: 260px; transform: rotate(32deg); transform-origin: 0 0;
+  width: 560px; height: 150px; transform: rotate(40deg); transform-origin: 0 0;
   background: linear-gradient(90deg, rgba(90,165,255,.08) 0%, rgba(156,203,255,.05) 40%, transparent 85%);
   -webkit-mask-image: linear-gradient(180deg, transparent, #000 35%, #000 65%, transparent); mask-image: linear-gradient(180deg, transparent, #000 35%, #000 65%, transparent);
 }

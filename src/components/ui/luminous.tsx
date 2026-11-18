@@ -79,6 +79,7 @@ type GlowLineProps = {
   /** change to re-draw */
   play?: unknown;
   duration?: number;
+  delay?: number;
   ease?: 'easeOut' | 'linear';
   /** draw only once in view */
   whenInView?: boolean;
@@ -92,7 +93,7 @@ type GlowLineProps = {
 };
 
 /** White glowing line that draws itself, with a travelling head dot and an optional dotted guide down to the baseline. */
-export function GlowLine({ d, width, height, baseline, play, duration = 1.6, ease = 'easeOut', whenInView = true, strokeWidth = 2.5, dot = true, stroke = '#fff', defs, className }: GlowLineProps) {
+export function GlowLine({ d, width, height, baseline, play, duration = 1.6, delay = 0, ease = 'easeOut', whenInView = true, strokeWidth = 2.5, dot = true, stroke = '#fff', defs, className }: GlowLineProps) {
   const wrap = useRef<SVGSVGElement>(null);
   const path = useRef<SVGPathElement>(null);
   const head = useRef<SVGGElement>(null);
@@ -111,9 +112,9 @@ export function GlowLine({ d, width, height, baseline, play, duration = 1.6, eas
     };
     if (prefersReducedMotion()) { set(1); return; }
     set(0);
-    const c = animate(0, 1, { duration, ease, onUpdate: set });
+    const c = animate(0, 1, { duration, delay, ease, onUpdate: set });
     return () => c.stop();
-  }, [d, play, go, duration, ease]);
+  }, [d, play, go, duration, delay, ease]);
 
   return (
     <svg ref={wrap} viewBox={`0 0 ${width} ${height}`} className={cn('pointer-events-none overflow-visible', className)} aria-hidden>
