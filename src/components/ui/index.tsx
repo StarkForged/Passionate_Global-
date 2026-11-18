@@ -80,6 +80,24 @@ export function SectionHeader({ tag, title, intro, dark, align = 'center', highl
   );
 }
 
+/* ---------------- External links ----------------
+ * Client (round 5): links to other websites open in a new tab and never replace the site.
+ * Any http(s) href gets target="_blank" rel="noopener noreferrer" + a screen-reader note.
+ * #anchor, tel: and mailto: links are left alone. Button applies the same rule automatically. */
+export const NEW_TAB = '(opens in a new tab)';
+export const isExternal = (href?: string) => !!href && /^https?:\/\//i.test(href);
+export const externalProps = (href?: string) => (isExternal(href) ? { target: '_blank', rel: 'noopener noreferrer' } : {});
+
+export function ExternalLink({ href, children, 'aria-label': ariaLabel, ...rest }: React.AnchorHTMLAttributes<HTMLAnchorElement> & { href: string }) {
+  const ext = isExternal(href);
+  return (
+    <a href={href} {...externalProps(href)} aria-label={ariaLabel && ext ? `${ariaLabel} ${NEW_TAB}` : ariaLabel} {...rest}>
+      {children}
+      {ext && !ariaLabel && <span className="sr-only"> {NEW_TAB}</span>}
+    </a>
+  );
+}
+
 /* ---------------- Magnetic button ---------------- */
 type BtnVariant = 'primary' | 'glass' | 'light' | 'outline' | 'dark';
 export function Button({ href, children, variant = 'primary', size = 'md', arrow = true, className, onClick, type }: {
@@ -110,13 +128,14 @@ export function Button({ href, children, variant = 'primary', size = 'md', arrow
     <>
       {variant === 'primary' && <span className="pointer-events-none absolute inset-0 -translate-x-full bg-[linear-gradient(110deg,transparent_25%,rgba(255,255,255,.35)_50%,transparent_75%)] transition-transform duration-700 group-hover:translate-x-full" />}
       <span className="relative">{children}</span>
+      {isExternal(href) && <span className="sr-only"> {NEW_TAB}</span>}
       {arrow && <ArrowRight className="relative h-[18px] w-[18px] transition-transform duration-300 group-hover:translate-x-1" />}
     </>
   );
   const common = { ref: ref as never, onPointerMove: onMove, onPointerLeave: reset, style: { x: sx, y: sy }, className: cls };
   if (href)
     return (
-      <motion.a href={href} {...common} onClick={(e: React.MouseEvent) => { if (href.startsWith('#')) { e.preventDefault(); scrollToHash(href); } onClick?.(); }}>
+      <motion.a href={href} {...externalProps(href)} {...common} onClick={(e: React.MouseEvent) => { if (href.startsWith('#')) { e.preventDefault(); scrollToHash(href); } onClick?.(); }}>
         {inner}
       </motion.a>
     );

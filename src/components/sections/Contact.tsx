@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import clsx from 'clsx';
 import { MapPin, Phone, Mail, Globe2, Check, ArrowRight, Clock3 } from 'lucide-react';
 import { company, contact, countries, services } from '@/data/content';
-import { Button, EASE, Reveal, SectionHeader, SplitHeading } from '@/components/ui';
+import { Button, EASE, ExternalLink, Reveal, SectionHeader, SplitHeading } from '@/components/ui';
 import { useClock } from '@/hooks/useClock';
 
 export function CtaBand() {
@@ -73,7 +73,7 @@ export default function Contact() {
     { icon: MapPin, label: 'Office Address', body: <address className="text-balance not-italic">{company.address.replace('Prahlad Nagar', 'Prahlad Nagar').replace(' – ', ' – ')}</address> },
     { icon: Phone, label: 'Phone', body: <>{company.phones.map((p) => <a key={p.href} href={p.href} className="block tabular-nums hover:text-brand">{company.phones.length > 1 && `${p.label} `}{p.value}</a>)}</> },
     { icon: Mail, label: 'Email', body: <a href={`mailto:${company.email}`} className="break-words hover:text-brand">{company.email}</a> },
-    { icon: Globe2, label: 'Website', body: <a href={company.website.href} className="hover:text-brand">{company.website.label}</a> },
+    { icon: Globe2, label: 'Website', body: <ExternalLink href={company.website.href} className="hover:text-brand">{company.website.label}</ExternalLink> },
   ];
 
   return (

@@ -1,6 +1,6 @@
 import { ArrowUp, Linkedin, Instagram, Facebook } from 'lucide-react';
 import { company, nav } from '@/data/content';
-import { Logo } from '@/components/ui';
+import { ExternalLink, Logo } from '@/components/ui';
 import { scrollToHash } from '@/lib/scroll';
 
 export default function Footer() {
@@ -16,7 +16,7 @@ export default function Footer() {
             <p className="mt-6 max-w-[36ch] text-[15px] leading-relaxed">{company.tagline}. Dedicated offshore teams that help recruitment businesses streamline operations and scale with confidence.</p>
             <div className="mt-7 flex gap-2.5">
               {([[Linkedin, company.socials.linkedin, 'LinkedIn'], [Instagram, company.socials.instagram, 'Instagram'], [Facebook, company.socials.facebook, 'Facebook']] as const).filter(([, href]) => href).map(([Icon, href, l]) => (
-                <a key={l} href={href} aria-label={l} className="grid h-11 w-11 place-items-center rounded-xl border border-white/10 bg-white/[0.04] text-white/80 transition hover:border-brand hover:bg-brand hover:text-white"><Icon className="h-[18px] w-[18px]" /></a>
+                <ExternalLink key={l} href={href} aria-label={l} className="grid h-11 w-11 place-items-center rounded-xl border border-white/10 bg-white/[0.04] text-white/80 transition hover:border-brand hover:bg-brand hover:text-white"><Icon className="h-[18px] w-[18px]" /></ExternalLink>
               ))}
             </div>
           </div>
@@ -33,7 +33,7 @@ export default function Footer() {
             <ul className="space-y-3 text-[15px]">
               {company.phones.map((p) => <li key={p.href}><a href={p.href} className="tabular-nums transition hover:text-white">{company.phones.length > 1 && `${p.label} `}{p.value}</a></li>)}
               <li><a href={`mailto:${company.email}`} className="break-words transition hover:text-white">{company.email}</a></li>
-              <li><a href={company.website.href} className="transition hover:text-white">{company.website.label}</a></li>
+              <li><ExternalLink href={company.website.href} className="transition hover:text-white">{company.website.label}</ExternalLink></li>
               <li>{company.city}</li>
             </ul>
           </div>
