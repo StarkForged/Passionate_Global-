@@ -12,23 +12,34 @@ const dims = (src: string) => (sizes as Record<string, number[]>)[src] ?? [];
 /** 3D glass logo watermark (glass variant = light backgrounds only). */
 const WATERMARK = { src: 'img/brand/logo-3d-glass-600.webp', srcSet: 'img/brand/logo-3d-glass-256.webp 256w, img/brand/logo-3d-glass-600.webp 600w, img/brand/logo-3d-glass-1200.webp 1200w' };
 
+/** Portrait backdrop ("editorial panel", client's pick from options A/B/C, Nov 2026): pale-blue diagonal gradient,
+ *  the 3D glass logo large and cropped off the bottom-right edge (quiet, 24%), one soft white light streak. */
+function Backdrop({ big }: { big?: boolean }) {
+  return (
+    <>
+      <div className="absolute inset-0 bg-[linear-gradient(150deg,#DCE8F7_0%,#EDF3FB_48%,#FFFFFF_100%)]" />
+      <img src={WATERMARK.src} srcSet={WATERMARK.srcSet} sizes={big ? '420px' : '(min-width: 768px) 32vw, 95vw'} alt="" aria-hidden width={600} height={582} loading="lazy" decoding="async"
+        className="pointer-events-none absolute -bottom-[18%] -right-[34%] w-full -rotate-[8deg] select-none opacity-[.24] transition-transform duration-[1.2s] ease-out [filter:saturate(.8)] group-hover:-rotate-[12deg] group-hover:scale-[1.03]" />
+      <div className="absolute inset-0 bg-[linear-gradient(115deg,transparent_38%,rgba(255,255,255,.6)_50%,transparent_62%)]" />
+    </>
+  );
+}
+
 /** Portrait (round 5, client: "the main focus should be the photo, the logo in the background").
- *  Light neutral backdrop, the 3D glass logo large and quiet behind the person like a halo (hover: -4deg, 1.03),
- *  the transparent cut-out on top with a soft drop shadow so the person separates from the background.
- *  Cut-outs come from scripts/optimise-images.py, all framed identically (4:4.6, eyes at 35%), so `pos` is only a
- *  fine-tune. No photo -> monogram on the same backdrop. `sizes` = the rendered width for srcset. */
-export function Portrait({ initials, photo, name, className, big, pos, sizes: sz }: { initials: string; photo?: string; name: string; className?: string; big?: boolean; pos?: string; sizes: string }) {
+ *  Light editorial backdrop with the 3D glass logo quiet behind the person (hover: a further -4deg, 1.03); the transparent cut-out
+ *  stands at 82% of the frame height, bottom-anchored and centred, so there is air around the head and shoulders.
+ *  Cut-outs come from scripts/optimise-images.py, all framed identically (4:4.6, eyes at 35%), so every person sits
+ *  at the same scale. No photo -> monogram on the same backdrop. `sizes` = the rendered width for srcset. */
+export function Portrait({ initials, photo, name, className, big, sizes: sz }: { initials: string; photo?: string; name: string; className?: string; big?: boolean; pos?: string; sizes: string }) {
   const [w, h] = photo ? dims(photo) : [];
   const small = photo?.replace(/\.webp$/, '-480.webp');
   const srcSet = photo && small && dims(small).length ? `${small} 480w, ${photo} ${w}w` : undefined;
   return (
-    <div className={clsx('isolate overflow-hidden bg-[linear-gradient(180deg,#FFFFFF_0%,#EEF3F9_100%)]', className)}>
-      <img src={WATERMARK.src} srcSet={WATERMARK.srcSet} sizes={big ? '360px' : '(min-width: 768px) 28vw, 80vw'} alt="" aria-hidden width={600} height={582} loading="lazy" decoding="async"
-        className="pointer-events-none absolute left-[10%] top-[5%] w-[80%] select-none opacity-[.17] [filter:saturate(.8)] transition-transform duration-[1.2s] ease-out group-hover:-rotate-[4deg] group-hover:scale-[1.03]" />
+    <div className={clsx('isolate overflow-hidden', className)}>
+      <Backdrop big={big} />
       {photo ? (
         <img src={photo} srcSet={srcSet} sizes={sz} alt={`Portrait of ${name}`} width={w} height={h} loading="lazy" decoding="async"
-          className="absolute inset-0 h-full w-full object-cover [filter:drop-shadow(0_24px_32px_rgba(1,21,45,.18))]"
-          style={{ objectPosition: pos ?? '50% 0%' }} />
+          className="absolute bottom-0 left-1/2 h-[82%] w-auto max-w-none -translate-x-1/2 [filter:drop-shadow(0_20px_28px_rgba(1,21,45,.16))]" />
       ) : (
         <span className={clsx('absolute inset-0 grid place-items-center font-display font-light leading-none tracking-[-0.06em] text-navy/80', big ? 'text-[clamp(6rem,11vw,9rem)]' : 'text-[clamp(4.5rem,7vw,6rem)]')}>{initials}</span>
       )}
@@ -48,8 +59,8 @@ function Member({ m, i }: { m: (typeof team.members)[number]; i: number }) {
   return (
     <motion.article initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.9, ease: EASE, delay: i * 0.1 }}
       className="group relative overflow-hidden rounded-[2rem] bg-white shadow-lift">
-      <div className="relative aspect-[4/4.6]">
-        <Portrait initials={m.initials} photo={m.photo} name={m.name} pos={m.photoPos} sizes="(min-width: 1280px) 384px, (min-width: 768px) 31vw, calc(100vw - 32px)" className="absolute inset-0" />
+      <div className="relative aspect-square">
+        <Portrait initials={m.initials} photo={m.photo} name={m.name} pos={m.photoPos} sizes="(min-width: 1280px) 300px, (min-width: 768px) 25vw, 75vw" className="absolute inset-0" />
         {/* bio overlay */}
         <AnimatePresence>
           {open && (
@@ -90,8 +101,8 @@ export default function Team() {
         <Reveal className="mt-16">
           <article className="grid overflow-hidden rounded-[2.5rem] bg-white shadow-lift lg:grid-cols-[440px_1fr]">
             <div className="group flex flex-col p-3 sm:p-4 lg:border-r lg:border-navy/[0.06]">
-              <div className="relative aspect-[4/4.6] overflow-hidden rounded-[2rem] ring-1 ring-navy/[0.05]">
-                <Portrait big initials={f.initials} photo={f.photo} name={f.name} pos={f.photoPos} sizes="(min-width: 1024px) 408px, calc(100vw - 56px)" className="absolute inset-0" />
+              <div className="relative aspect-square overflow-hidden rounded-[2rem] ring-1 ring-navy/[0.05]">
+                <Portrait big initials={f.initials} photo={f.photo} name={f.name} pos={f.photoPos} sizes="(min-width: 1024px) 330px, 75vw" className="absolute inset-0" />
               </div>
               <div className="px-4 pb-5 pt-6 sm:px-5">
                 <Pill>{f.tenure} experience</Pill>
