@@ -16,10 +16,9 @@ export const company = {
   ],
   email: 'hitesh@passionateglobal.co.in',
   website: { label: 'www.passionateglobal.co.in', href: 'https://www.passionateglobal.co.in' },
-  // TODO client: LinkedIn still points to the old company page; replace with the Passionate Global profile.
   // An empty value hides the icon (the old Facebook page was removed with the old contact details).
   socials: {
-    linkedin: 'https://www.linkedin.com/company/passionate-staffing-solutions-private-limited',
+    linkedin: 'https://www.linkedin.com/company/passionate-global-private-limited/', // client, Nov 2026
     instagram: 'https://www.instagram.com/passionate_global_/', // client, Nov 2026 (share-tracking params removed)
     facebook: '',
   },
