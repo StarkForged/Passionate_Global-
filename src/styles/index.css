@@ -100,7 +100,7 @@
 /* ---- Header (round 3): always visible, never translated off-screen. Two states, 250ms CSS transition.
    top   = top of the page over the hero (as before)
    light / dark = scrolled: compact (-4px), opaque enough that text behind is never legible, blur + hairline + shadow,
-   subtle liquid-glass top rim. No transform / filter / opacity / mask on any ancestor (would kill the blur). ---- */
+   subtle top rim. No transform / filter / opacity / mask on any ancestor (would kill the blur). ---- */
 .nav-bar {
   padding-block: 8px;
   -webkit-backdrop-filter: blur(20px) saturate(180%); backdrop-filter: blur(20px) saturate(180%);
