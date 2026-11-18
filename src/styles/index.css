@@ -48,6 +48,9 @@
 @keyframes cue { 0% { transform: translateY(0); opacity: 1; } 70% { transform: translateY(14px); opacity: 0; } 100% { transform: translateY(0); opacity: 0; } }
 .ooh-ping { animation: ooh-ping 1.6s cubic-bezier(.22,1,.36,1) infinite; }
 @keyframes ooh-ping { 0% { transform: scale(1); opacity: .9; } 100% { transform: scale(2.4); opacity: 0; } }
+/* round 5: the 3D glass logo in the About orbit centre floats gently (±6px, 6s) */
+.logo-float { animation: logo-float 6s ease-in-out infinite; will-change: transform; }
+@keyframes logo-float { 0%, 100% { transform: translateY(6px); } 50% { transform: translateY(-6px); } }
 
 /* ---- Ported Magic UI / Aceternity primitives ---- */
 /* ring mask: paints only the element's border box minus its padding box */
@@ -87,6 +90,7 @@
    letting the global rule snap them back to their un-animated origin. */
 @media (prefers-reduced-motion: reduce) {
   .orbit { animation: none !important; transform: rotate(calc(var(--angle) * 1deg)) translateY(calc(var(--radius) * 1px)) rotate(calc(var(--angle) * -1deg)); }
+  .logo-float { animation: none !important; transform: none; }
 }
 
 /* ---- Light tiles (Industries; round 4: plain light cards, no frosted glass / orbs behind them) ---- */
