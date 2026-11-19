@@ -51,13 +51,14 @@ export const trust = {
 export const about = {
   eyebrow: 'About Us',
   title: 'Passionate Global is built differently.',
+  // Client, launch brief (Nov 2026): the former trading name, shown as a quiet line under the H2.
+  formerly: 'Formerly known as Passionate Staffing Solutions, established in January 2022.',
   paragraphs: [
     'At Passionate Global, we believe exceptional outsourcing begins with strategic alignment. By understanding your goals, processes and ways of working, we build dedicated teams that integrate seamlessly into your organisation and deliver meaningful results from day one.',
     "We don't measure success by the number of tasks completed. We measure it by the relationships we build, the trust we earn and the value we deliver over time.",
   ],
   punch: ['Because when your business grows,', 'so does ours.'],
-  // 21+ yrs: from the client (round 5, Nov 2026: "21+ years of Leadership Experience"); 6 markets, 8 sectors from the copy.
-  // Hitesh's personal bio / tenure badge (team.founder) intentionally still says 14+: open question to the client.
+  // 21+ yrs: Hitesh's management experience (client, launch brief Nov 2026); 6 markets, 8 sectors from the copy.
   stats: [
     { value: 21, suffix: '+', label: 'Years of Leadership Experience' },
     { value: 6, suffix: '', label: 'International markets supported' },
@@ -216,9 +217,9 @@ export const team = {
     // frames everyone identically), then set the .webp path here. `photoPos` = CSS object-position, a fine-tune only:
     // the frames already match the card's 4:4.6 so '50% 0%' (top-anchored) is right for everyone.
     photo: 'img/team/hitesh-vaishnav.webp', photoPos: '50% 0%',
-    tenure: '14+ years',
+    tenure: '21+ years', tenureLabel: 'management experience',
     bio: [
-      'With over 14 years of experience supporting businesses across international markets, Hitesh Vaishnav founded Passionate Global with a vision to redefine outsourcing through trust, ownership, and long-term partnerships.',
+      'With over 21 years of management experience supporting businesses across international markets, Hitesh Vaishnav founded Passionate Global with a vision to redefine outsourcing through trust, ownership, and long-term partnerships.',
       "Having helped organisations streamline operations, improve efficiency, and build high-performing teams, he believes outsourcing should feel like a seamless extension of a client's business, not just a cost-saving solution.",
       "Today, that philosophy continues to drive Passionate Global's commitment to delivering tailored solutions, dedicated teams, and lasting client success.",
     ],

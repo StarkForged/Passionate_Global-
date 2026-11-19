@@ -105,7 +105,7 @@ export default function Team() {
                 <Portrait big initials={f.initials} photo={f.photo} name={f.name} pos={f.photoPos} sizes="(min-width: 1024px) 330px, 75vw" className="absolute inset-0" />
               </div>
               <div className="px-4 pb-5 pt-6 sm:px-5">
-                <Pill>{f.tenure} experience</Pill>
+                <Pill>{f.tenure} {f.tenureLabel}</Pill>
                 <h3 className="mt-3 font-display text-[clamp(1.75rem,2.6vw,2.25rem)] font-semibold leading-none tracking-[-0.04em] text-navy">{f.name}</h3>
                 <p className="mt-2 text-[15px] font-medium text-brand">{f.role}</p>
               </div>
