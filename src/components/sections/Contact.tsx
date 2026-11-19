@@ -1,11 +1,12 @@
 /** CTA band (reference: ref_vid2 "Contact us" horizon card) + Contact section with enquiry form. */
-import { useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import clsx from 'clsx';
-import { MapPin, Phone, Mail, Globe2, Check, ArrowRight, Clock3 } from 'lucide-react';
+import { MapPin, Phone, Mail, Globe2, Check, ArrowRight, Clock3, AlertCircle } from 'lucide-react';
 import { company, contact, countries, services } from '@/data/content';
 import { Button, EASE, ExternalLink, Reveal, SectionHeader, SplitHeading } from '@/components/ui';
 import { useClock } from '@/hooks/useClock';
+import { useTurnstile } from '@/hooks/useTurnstile';
 
 export function CtaBand() {
   return (
@@ -56,18 +57,51 @@ export default function Contact() {
   const [size, setSize] = useState('3–5');
   const [market, setMarket] = useState('United Kingdom');
   const [errors, setErrors] = useState<Record<string, boolean>>({});
-  const [sent, setSent] = useState<string | null>(null);
+  const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
+  const [failure, setFailure] = useState<'rate' | 'other'>('other');
+  const honeypot = useRef<HTMLInputElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  const turnstile = useTurnstile(formRef);
   const set = (k: keyof typeof f) => (v: string) => { setF((s) => ({ ...s, [k]: v })); setErrors((e) => ({ ...e, [k]: false })); };
 
-  const submit = (e: React.FormEvent) => {
+  // move focus to the success heading once it mounts (after the form's exit animation)
+  const focusDone = useCallback((el: HTMLHeadingElement | null) => el?.focus({ preventScroll: true }), []);
+
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (status === 'sending') return;
     const er = { name: !f.name.trim(), company: !f.company.trim(), email: !/^\S+@\S+\.\S+$/.test(f.email) };
     setErrors(er);
-    if (Object.values(er).some(Boolean)) return;
-    // BACKEND: replace this block with a POST to your form service / API (Formspree, Netlify Forms, HubSpot…)
-    const body = `Name: ${f.name}\nCompany: ${f.company}\nEmail: ${f.email}\nPhone: ${f.phone || '-'}\nServices: ${svc.join(', ') || '-'}\nBased in: ${market}\nTeam size: ${size}\n\n${f.message}`;
-    setSent(`mailto:${company.email}?subject=${encodeURIComponent('Website enquiry: ' + f.company)}&body=${encodeURIComponent(body)}`);
+    if (Object.values(er).some(Boolean)) {
+      document.getElementById(er.name ? 'name' : er.company ? 'company' : 'email')?.focus();
+      return;
+    }
+    setStatus('sending');
+    try {
+      const turnstileToken = await turnstile.token();
+      // POST /api/contact (Vercel function, api/contact.ts): validated server-side, emailed via Resend.
+      const r = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...f, services: svc, market, teamSize: size, website: honeypot.current?.value ?? '', turnstileToken }),
+      });
+      if (r.ok) { setStatus('sent'); return; }
+      const body = await r.json().catch(() => ({}));
+      if (r.status === 400 && Array.isArray(body.fields)) {
+        const fe = Object.fromEntries((body.fields as string[]).filter((k) => k in f).map((k) => [k, true]));
+        if (Object.keys(fe).length) { setErrors(fe); setStatus('idle'); return; }
+      }
+      setFailure(r.status === 429 ? 'rate' : 'other');
+      setStatus('error');
+    } catch {
+      setFailure('other');
+      setStatus('error');
+    } finally {
+      turnstile.reset();
+    }
   };
+
+  const reset = () => { setF({ name: '', company: '', email: '', phone: '', message: '' }); setStatus('idle'); };
 
   const info = [
     { icon: MapPin, label: 'Office Address', body: <address className="text-balance not-italic">{company.address.replace('Prahlad Nagar', 'Prahlad Nagar').replace(' – ', ' – ')}</address> },
@@ -108,8 +142,8 @@ export default function Contact() {
         <Reveal delay={0.1}>
           <div className="relative overflow-hidden rounded-[2rem] bg-white p-7 shadow-lift sm:p-10">
             <AnimatePresence mode="wait">
-              {!sent ? (
-                <motion.form key="form" onSubmit={submit} noValidate exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.4 }} className="flex flex-col gap-5">
+              {status !== 'sent' ? (
+                <motion.form key="form" ref={formRef} onSubmit={submit} noValidate aria-busy={status === 'sending'} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.4 }} className="flex flex-col gap-5">
                   <div>
                     <h3 className="font-display text-[28px] font-semibold tracking-[-0.03em] text-ink">{contact.formTitle}</h3>
                     <p className="mt-2 text-[14.5px] leading-relaxed text-muted">{contact.formIntro}</p>
@@ -157,17 +191,36 @@ export default function Contact() {
                     </fieldset>
                   </div>
                   <Field id="message" label="How can we help?" textarea value={f.message} onChange={set('message')} />
+                  {/* honeypot: invisible to people, tempting to bots (the API silently drops anything that fills it) */}
+                  <div aria-hidden className="absolute -left-[9999px] h-px w-px overflow-hidden">
+                    <label htmlFor="website">Website</label>
+                    <input ref={honeypot} id="website" name="website" type="text" tabIndex={-1} autoComplete="off" defaultValue="" />
+                  </div>
                   {Object.values(errors).some(Boolean) && <p role="alert" className="text-[14px] text-red-600">Please add your name, company and a valid work email so we can reply.</p>}
-                  <Button type="submit" size="lg" className="w-full">Send enquiry</Button>
+                  {status === 'error' && (
+                    <p role="alert" className="flex gap-2.5 rounded-2xl bg-red-50 px-4 py-3 text-[14px] leading-relaxed text-red-700">
+                      <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+                      <span>
+                        {failure === 'rate' ? 'You’ve sent several enquiries in a short time.' : 'Sorry, your enquiry couldn’t be sent just now.'}{' '}
+                        Please try again later or email us directly at <a href={`mailto:${company.email}`} className="font-semibold underline underline-offset-2">{company.email}</a>.
+                      </span>
+                    </p>
+                  )}
+                  <div ref={turnstile.container} className="empty:hidden" />
+                  <Button type="submit" size="lg" className="w-full" disabled={status === 'sending'} arrow={status !== 'sending'}>
+                    {status === 'sending'
+                      ? <span className="inline-flex items-center gap-2.5"><span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" aria-hidden />Sending…</span>
+                      : 'Send enquiry'}
+                  </Button>
+                  <p className="-mt-1 text-center text-[13px] text-muted">By sending this form you agree to our <a href="/privacy-policy" className="font-medium text-brand underline-offset-2 hover:underline">Privacy Policy</a>.</p>
                 </motion.form>
               ) : (
-                <motion.div key="done" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: EASE }} className="flex min-h-[520px] flex-col items-center justify-center text-center">
+                <motion.div key="done" role="status" aria-live="polite" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: EASE }} className="flex min-h-[520px] flex-col items-center justify-center text-center">
                   <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 200, damping: 12, delay: 0.15 }} className="grid h-20 w-20 place-items-center rounded-full bg-grad text-white shadow-blue"><Check className="h-9 w-9" strokeWidth={2.5} /></motion.span>
-                  <h3 className="mt-7 font-display text-[28px] font-semibold tracking-[-0.03em]">Thanks, {f.name.split(' ')[0]}. Your enquiry is ready.</h3>
-                  <p className="mt-3 max-w-[40ch] text-[15px] leading-relaxed text-muted">Open it in your email app to send it to our team, or write to us directly at <b className="text-ink">{company.email}</b>.</p>
+                  <h3 ref={focusDone} tabIndex={-1} className="mt-7 font-display text-[28px] font-semibold tracking-[-0.03em] outline-none">Thanks, {f.name.trim().split(' ')[0]}. Your enquiry has been sent.</h3>
+                  <p className="mt-3 max-w-[42ch] text-[15px] leading-relaxed text-muted">One of our consultants will contact you to discuss your requirements. We’ve sent a confirmation to <b className="break-words text-ink">{f.email}</b>.</p>
                   <div className="mt-8 flex flex-wrap justify-center gap-3">
-                    <Button href={sent}>Open in email app</Button>
-                    <Button variant="outline" arrow={false} onClick={() => setSent(null)}>Edit enquiry</Button>
+                    <Button variant="outline" arrow={false} onClick={reset}>Send another enquiry</Button>
                   </div>
                 </motion.div>
               )}

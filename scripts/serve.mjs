@@ -1,6 +1,8 @@
 // Local stand-in for Vercel's static hosting, for testing headers, CSP and redirects before deploying.
 // Serves dist/ with vercel.json `headers`, `redirects` (incl. `has: host`), cleanUrls and 404.html.
-//   node scripts/serve.mjs [port=4174] [--enforce]   (--enforce turns CSP-Report-Only into an enforced CSP)
+//   node scripts/serve.mjs [port=4174] [--enforce] [--api]
+//   --enforce  turns CSP-Report-Only into an enforced CSP
+//   --api      mounts POST /api/contact (api/_lib/enquiry.ts, env from .env.local + process.env; Node >= 22.6)
 // Test a host rule: curl -sI -H "Host: www.passionatestaffing.com" http://localhost:4174/about-us
 import { createServer } from 'node:http';
 import { readFileSync, existsSync, statSync } from 'node:fs';
@@ -10,6 +12,14 @@ const root = new URL('../dist/', import.meta.url).pathname.replace(/^\/(\w:)/, '
 const cfg = JSON.parse(readFileSync(new URL('../vercel.json', import.meta.url), 'utf8'));
 const port = Number(process.argv.find((a) => /^\d+$/.test(a)) ?? 4174);
 const enforce = process.argv.includes('--enforce');
+const api = process.argv.includes('--api') ? await import('../api/_lib/enquiry.ts') : null;
+const env = { ...process.env };
+try {
+  for (const line of readFileSync(new URL('../.env.local', import.meta.url), 'utf8').split(/\r?\n/)) {
+    const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*"?(.*?)"?\s*$/);
+    if (m && m[2]) env[m[1]] ??= m[2];
+  }
+} catch { /* no .env.local */ }
 const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.webp': 'image/webp', '.png': 'image/png', '.ico': 'image/x-icon', '.svg': 'image/svg+xml', '.woff2': 'font/woff2', '.txt': 'text/plain; charset=utf-8', '.xml': 'application/xml', '.webmanifest': 'application/manifest+json' };
 
 /** path-to-regexp subset used in vercel.json: `:name*`, `:name`, and raw regex groups. Returns [regex, names]. */
@@ -20,8 +30,17 @@ function compile(src) {
 }
 const hostOk = (has, host) => !has || has.every((h) => h.type !== 'host' || new RegExp('^' + h.value + '$').test(host));
 
-createServer((req, res) => {
+createServer(async (req, res) => {
   const url = new URL(req.url, 'http://x');
+  if (api && url.pathname === '/api/contact') {
+    let raw = '';
+    for await (const c of req) raw += c;
+    let body = null;
+    try { body = JSON.parse(raw); } catch { /* invalid JSON -> 400 */ }
+    const out = await api.handleEnquiry({ method: req.method, origin: req.headers.origin, ip: req.socket.remoteAddress ?? 'local', body }, env);
+    res.writeHead(out.status, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
+    return res.end(JSON.stringify(out.body));
+  }
   const host = (req.headers.host ?? '').replace(/:\d+$/, '');
   let path = decodeURIComponent(url.pathname);
 

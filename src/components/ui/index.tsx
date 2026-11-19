@@ -100,8 +100,8 @@ export function ExternalLink({ href, children, 'aria-label': ariaLabel, ...rest 
 
 /* ---------------- Magnetic button ---------------- */
 type BtnVariant = 'primary' | 'glass' | 'light' | 'outline' | 'dark';
-export function Button({ href, children, variant = 'primary', size = 'md', arrow = true, className, onClick, type }: {
-  href?: string; children: ReactNode; variant?: BtnVariant; size?: 'sm' | 'md' | 'lg'; arrow?: boolean; className?: string; onClick?: () => void; type?: 'submit' | 'button';
+export function Button({ href, children, variant = 'primary', size = 'md', arrow = true, className, onClick, type, disabled }: {
+  href?: string; children: ReactNode; variant?: BtnVariant; size?: 'sm' | 'md' | 'lg'; arrow?: boolean; className?: string; onClick?: () => void; type?: 'submit' | 'button'; disabled?: boolean;
 }) {
   const ref = useRef<HTMLElement>(null);
   const x = useMotionValue(0), y = useMotionValue(0);
@@ -139,7 +139,7 @@ export function Button({ href, children, variant = 'primary', size = 'md', arrow
         {inner}
       </motion.a>
     );
-  return <motion.button type={type ?? 'button'} onClick={onClick} {...common}>{inner}</motion.button>;
+  return <motion.button type={type ?? 'button'} onClick={onClick} disabled={disabled} {...common} className={clsx(cls, disabled && 'cursor-wait opacity-80')}>{inner}</motion.button>;
 }
 
 /* ---------------- Count-up number ---------------- */
@@ -168,7 +168,7 @@ export function Clock({ value, className }: { value: string; className?: string 
 export function Logo({ light = false, className }: { light?: boolean; className?: string }) {
   return (
     <span className={clsx('flex items-center gap-2.5', className)}>
-      <img src={light ? './img/logo-mark-light.png' : './img/logo-mark.png'} alt="" className="h-9 w-auto" />
+      <img src={light ? '/img/logo-mark-light.png' : '/img/logo-mark.png'} alt="" className="h-9 w-auto" />
       <span className={clsx('flex flex-col font-display text-[13px] font-bold leading-[1.02] tracking-[0.02em]', light ? 'text-white' : 'text-navy')}>
         <span>PASSIONATE</span><span>GLOBAL</span>
       </span>

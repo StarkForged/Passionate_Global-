@@ -5,7 +5,7 @@ import { EASE } from '@/components/ui';
 /** Short branded intro (round 5, total ≤ 1.5s): the solid 3D logo scales / fades in, one white light sweep
  *  crosses it (masked to the logo shape), then the curtain lifts. Skipped for reduced-motion users.
  *  Timeline: logo 0–0.6s · sweep 0.4–1.0s · curtain 1.05–1.5s. The image is preloaded in index.html. */
-const LOGO = './img/brand/logo-3d-solid-256.webp';
+const LOGO = '/img/brand/logo-3d-solid-256.webp';
 const HOLD = 1050; // ms until the curtain starts lifting (curtain = 0.45s)
 
 export default function Preloader() {

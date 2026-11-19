@@ -11,15 +11,16 @@ function preloadFont(): Plugin {
       order: 'post',
       handler(_html, ctx) {
         const file = Object.keys(ctx.bundle ?? {}).find((f) => /inter-tight-latin-wght-normal.*\.woff2$/.test(f));
-        return file ? [{ tag: 'link', attrs: { rel: 'preload', href: `./${file}`, as: 'font', type: 'font/woff2', crossorigin: '' }, injectTo: 'head-prepend' }] : [];
+        return file ? [{ tag: 'link', attrs: { rel: 'preload', href: `/${file}`, as: 'font', type: 'font/woff2', crossorigin: '' }, injectTo: 'head-prepend' }] : [];
       },
     },
   };
 }
 
-// base './' keeps the build portable (works from any sub-folder / static host)
 export default defineConfig({
-  base: './',
+  base: '/', // site is served from the domain root (Vercel); '/' keeps assets working on /privacy-policy and deep 404s
+  // TURNSTILE_SITE_KEY is public (it is sent to every browser); TURNSTILE_SECRET_KEY never matches this prefix.
+  envPrefix: ['VITE_', 'TURNSTILE_SITE_KEY'],
   plugins: [react(), preloadFont()],
   resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
   build: {
