@@ -42,7 +42,8 @@ export default function Testimonials() {
             onFocus={() => setPaused(true)} onBlur={() => setPaused(false)}>
             <span className="grid h-14 w-14 place-items-center rounded-full bg-grad text-white shadow-blue"><Quote className="h-6 w-6" strokeWidth={1.8} /></span>
             {/* every quote sits in the same cell; the inactive ones are invisible so the height never jumps */}
-            <blockquote className="mt-8 grid w-full" aria-live="polite">
+            {/* announce quote changes only when the visitor is driving them, not every 7s while it auto-rotates */}
+            <blockquote id="testimonial-panel" role="tabpanel" aria-labelledby={`testimonial-tab-${i}`} className="mt-8 grid w-full" aria-live={paused || !auto ? 'polite' : 'off'}>
               {t.items.map((q, k) => (
                 <div key={k} className={cn('col-start-1 row-start-1 self-center', k !== i && 'invisible')} aria-hidden={k !== i}>
                   {k === i ? <TextGenerateEffect key={i} words={`“${q.quote}”`} className={quoteCls} duration={0.6} /> : <p className={quoteCls}>“{q.quote}”</p>}
@@ -58,7 +59,15 @@ export default function Testimonials() {
 
             <div className="mt-10 grid w-full max-w-[640px] grid-cols-3 gap-3" role="tablist" aria-label="Client testimonials">
               {t.items.map((q, k) => (
-                <button key={k} role="tab" aria-selected={k === i} onClick={() => setI(k)}
+                <button key={k} id={`testimonial-tab-${k}`} role="tab" aria-selected={k === i} aria-controls="testimonial-panel" tabIndex={k === i ? 0 : -1} onClick={() => setI(k)}
+                  onKeyDown={(e) => {
+                    // WAI-ARIA tabs: arrows / Home / End move between tabs (roving tabindex)
+                    const n = t.items.length;
+                    const to = e.key === 'ArrowRight' ? (k + 1) % n : e.key === 'ArrowLeft' ? (k - 1 + n) % n : e.key === 'Home' ? 0 : e.key === 'End' ? n - 1 : -1;
+                    if (to < 0) return;
+                    e.preventDefault(); setI(to);
+                    (e.currentTarget.parentElement?.children[to] as HTMLElement | undefined)?.focus();
+                  }}
                   className="group flex flex-col gap-2.5 rounded-xl px-1 py-2 text-left">
                   <span className="relative h-[3px] overflow-hidden rounded-full bg-navy/10">
                     {k === i && (

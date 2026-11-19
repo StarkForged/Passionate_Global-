@@ -139,7 +139,7 @@ export default function Countries() {
                       <span className={cn('font-display text-[clamp(1.4rem,2.2vw,1.75rem)] font-semibold tracking-[-0.03em]', sel === i ? 'text-ink' : 'text-ink/70')}>{m.name}</span>
                       <span className="text-[15px] text-muted">{m.city}</span>
                     </span>
-                    <span className={cn('font-display text-[clamp(1.4rem,2.2vw,1.75rem)] font-medium tabular-nums tracking-[-0.02em]', sel === i ? 'text-brand' : 'text-ink/60')}><Clock value={formatTime(m.tz, now)} /></span>
+                    <span className={cn('font-display text-[clamp(1.4rem,2.2vw,1.75rem)] font-medium tabular-nums tracking-[-0.02em]', sel === i ? 'text-brand' : 'text-ink/70')}><Clock value={formatTime(m.tz, now)} /></span>
                   </button>
                 </li>
               ))}

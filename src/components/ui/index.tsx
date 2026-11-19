@@ -161,7 +161,8 @@ export function Counter({ to, duration = 1.6, className }: { to: number; duratio
  * full-width and large clocks read "21 : 55". */
 export function Clock({ value, className }: { value: string; className?: string }) {
   const [h, m] = value.split(':');
-  return <span className={clsx('tabular-nums', className)}>{h}<span className="[font-variant-numeric:normal]">:</span>{m}</span>;
+  // live clocks tick every second: never announced (aria-live off)
+  return <span aria-live="off" className={clsx('tabular-nums', className)}>{h}<span className="[font-variant-numeric:normal]">:</span>{m}</span>;
 }
 
 /* ---------------- Logo ---------------- */
@@ -170,7 +171,7 @@ export function Logo({ light = false, className }: { light?: boolean; className?
     <span className={clsx('flex items-center gap-2.5', className)}>
       <img src={light ? '/img/logo-mark-light.webp' : '/img/logo-mark.webp'} alt="" width={34} height={36} draggable={false} className="no-save h-9 w-auto" />
       <span className={clsx('flex flex-col font-display text-[13px] font-bold leading-[1.02] tracking-[0.02em]', light ? 'text-white' : 'text-navy')}>
-        <span>PASSIONATE</span><span>GLOBAL</span>
+        <span>PASSIONATE</span>{' '}<span>GLOBAL</span>
       </span>
     </span>
   );

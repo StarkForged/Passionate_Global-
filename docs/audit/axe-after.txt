@@ -1,0 +1,13 @@
+
+== desktop: 1 rule(s) violated
+- [serious] color-contrast (37): Elements must meet minimum color contrast ratio thresholds
+    .mr-\[0\.25em\][aria-hidden="true"]:nth-child(2) ::   Element has insufficient color contrast of 1.36 (foreground color: #dadde0, background color: #ffffff, font size: 31.3pt (41.76px), font weight: normal). Expected contrast ratio of 3:1
+    .mr-\[0\.25em\][aria-hidden="true"]:nth-child(3) ::   Element has insufficient color contrast of 1.36 (foreground color: #dadde0, background color: #ffffff, font size: 31.3pt (41.76px), font weight: normal). Expected contrast ratio of 3:1
+    .mr-\[0\.25em\][aria-hidden="true"]:nth-child(4) ::   Element has insufficient color contrast of 1.36 (foreground color: #dadde0, background color: #ffffff, font size: 31.3pt (41.76px), font weight: normal). Expected contrast ratio of 3:1
+    .mr-\[0\.25em\][aria-hidden="true"]:nth-child(5) ::   Element has insufficient color contrast of 1.36 (foreground color: #dadde0, background color: #ffffff, font size: 31.3pt (41.76px), font weight: normal). Expected contrast ratio of 3:1
+    .mr-\[0\.25em\][aria-hidden="true"]:nth-child(6) ::   Element has insufficient color contrast of 1.36 (foreground color: #dadde0, background color: #ffffff, font size: 31.3pt (41.76px), font weight: normal). Expected contrast ratio of 3:1
+    .mr-\[0\.25em\][aria-hidden="true"]:nth-child(7) ::   Element has insufficient color contrast of 1.36 (foreground color: #dadde0, background color: #ffffff, font size: 31.3pt (41.76px), font weight: normal). Expected contrast ratio of 3:1
+    .mr-\[0\.25em\][aria-hidden="true"]:nth-child(8) ::   Element has insufficient color contrast of 1.36 (foreground color: #dadde0, background color: #ffffff, font size: 31.3pt (41.76px), font weight: normal). Expected contrast ratio of 3:1
+    .mr-\[0\.25em\][aria-hidden="true"]:nth-child(9) ::   Element has insufficient color contrast of 1.36 (foreground color: #dadde0, background color: #ffffff, font size: 31.3pt (41.76px), font weight: normal). Expected contrast ratio of 3:1
+
+== mobile: 0 rule(s) violated

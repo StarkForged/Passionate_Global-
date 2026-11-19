@@ -34,7 +34,7 @@ function Counter({ step, progress }: { step: number; progress: ReturnType<typeof
   const dash = useTransform(progress, (p) => C * (1 - p));
   return (
     <div className="sticky top-[max(calc(var(--nav-h)+16px),calc(50vh-190px))]">
-      <p aria-live="polite" className="text-[12px] font-semibold uppercase tracking-[0.14em] text-brand">Step {step + 1} of {n}</p>
+      <p aria-live="off" className="text-[12px] font-semibold uppercase tracking-[0.14em] text-brand">Step {step + 1} of {n}</p>
       <p className="mt-2 font-display text-[clamp(10rem,14vw,12.5rem)] font-semibold leading-none tracking-[-0.06em]" aria-hidden>
         <span className="text-outline">0</span><Odometer value={step} />
       </p>
@@ -87,8 +87,8 @@ export default function Process() {
                     </span>
                     <div className="pt-2">
                       <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-brand">Step 0{i + 1}</p>
-                      <h3 className={cn('mt-2 font-display text-[clamp(1.6rem,2.4vw,2rem)] font-semibold leading-tight tracking-[-0.035em] transition-colors duration-500', on ? 'text-ink' : 'text-ink/45')}>{s.title}</h3>
-                      <p className={cn('mt-3 max-w-[48ch] text-[17px] leading-[1.7] transition-colors duration-500', on ? 'text-muted' : 'text-muted/60')}>{s.body}</p>
+                      <h3 className={cn('mt-2 font-display text-[clamp(1.6rem,2.4vw,2rem)] font-semibold leading-tight tracking-[-0.035em] transition-colors duration-500', on ? 'text-ink' : 'text-ink/60')}>{s.title}</h3>
+                      <p className={cn('mt-3 max-w-[48ch] text-[17px] leading-[1.7] transition-colors duration-500', on ? 'text-muted' : 'text-muted/95')}>{s.body}</p>
                     </div>
                   </li>
                 );

@@ -162,7 +162,8 @@ export function DotPattern({ width = 22, height = 22, cr = 1, className }: { wid
 export function TextReveal({ text, progress, className, from = 0.15 }: { text: string; progress: MotionValue<number>; className?: string; from?: number }) {
   const words = text.split(' ');
   return (
-    <p className={cn('flex flex-wrap', className)} aria-label={text}>
+    <p className={cn('flex flex-wrap', className)}>
+      <span className="sr-only">{text}</span>
       {words.map((w, i) => {
         const s = 0.08 + (i / words.length) * 0.8;
         return <Word key={i} progress={progress} range={[s, s + 0.8 / words.length]} from={from}>{w}</Word>;

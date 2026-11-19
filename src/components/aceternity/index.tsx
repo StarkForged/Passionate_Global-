@@ -16,7 +16,8 @@ export function TextGenerateEffect({ words, className, duration = 0.5, filter = 
     run('span', { opacity: 1, filter: filter ? 'blur(0px)' : 'none' }, { duration, delay: stagger(0.06) });
   }, [words, run, duration, filter]);
   return (
-    <div ref={scope} className={className} aria-label={words}>
+    <div ref={scope} className={className}>
+      <span className="sr-only">{words}</span>
       {list.map((w, i) => (
         <motion.span key={w + i} aria-hidden className="inline-block opacity-0" style={{ filter: filter ? 'blur(10px)' : 'none' }}>
           {w}{i < list.length - 1 && ' '}

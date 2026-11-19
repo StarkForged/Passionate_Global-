@@ -29,18 +29,18 @@ export function CtaBand() {
   );
 }
 
-function Field({ id, label, type = 'text', required, autoComplete, textarea, value, onChange, error, message }: {
-  id: string; label: string; type?: string; required?: boolean; autoComplete?: string; textarea?: boolean; value: string; onChange: (v: string) => void; error?: boolean; message?: string;
+function Field({ id, label, type = 'text', required, autoComplete, textarea, value, onChange, error, message, maxLength }: {
+  id: string; label: string; type?: string; required?: boolean; autoComplete?: string; textarea?: boolean; value: string; onChange: (v: string) => void; error?: boolean; message?: string; maxLength?: number;
 }) {
+  const aria = { 'aria-invalid': error || undefined, 'aria-describedby': error && message ? `${id}-err` : undefined };
   const cls = clsx('peer w-full rounded-2xl border bg-[#F7FAFD] px-4 pb-2.5 pt-6 text-[15px] text-ink outline-none transition focus:bg-white focus:ring-4',
     error ? 'border-red-500 focus:ring-red-100' : 'border-navy/10 focus:border-brand focus:ring-brand/10');
   return (
     <label htmlFor={id} className="relative block">
       {textarea ? (
-        <textarea id={id} rows={4} placeholder=" " value={value} onChange={(e) => onChange(e.target.value)} className={clsx(cls, 'resize-none')} />
+        <textarea id={id} rows={4} placeholder=" " maxLength={maxLength} value={value} onChange={(e) => onChange(e.target.value)} className={clsx(cls, 'resize-none')} {...aria} />
       ) : (
-        <input id={id} type={type} placeholder=" " required={required} autoComplete={autoComplete} value={value} onChange={(e) => onChange(e.target.value)} className={cls}
-          aria-invalid={error || undefined} aria-describedby={error && message ? `${id}-err` : undefined} />
+        <input id={id} type={type} placeholder=" " required={required} autoComplete={autoComplete} maxLength={maxLength} value={value} onChange={(e) => onChange(e.target.value)} className={cls} {...aria} />
       )}
       <span className="pointer-events-none absolute left-4 top-[18px] text-[15px] text-muted transition-all peer-focus:top-2 peer-focus:text-[11.5px] peer-focus:font-semibold peer-focus:text-brand peer-[:not(:placeholder-shown)]:top-2 peer-[:not(:placeholder-shown)]:text-[11.5px] peer-[:not(:placeholder-shown)]:font-semibold">
         {label}{required && ' *'}
@@ -135,7 +135,7 @@ export default function Contact() {
           </div>
           <div className="mt-4 flex items-center gap-3 rounded-2xl bg-navy p-4 text-white">
             <span className="grid h-11 w-11 place-items-center rounded-xl bg-white/10 text-sky"><Clock3 className="h-5 w-5" /></span>
-            <p className="text-[14px] text-[#B9CBE4]">Our Ahmedabad office time is now <b className="font-display text-[18px] tabular-nums text-white">{officeTime}</b></p>
+            <p className="text-[14px] text-[#B9CBE4]">Our Ahmedabad office time is now <b aria-live="off" className="font-display text-[18px] tabular-nums text-white">{officeTime}</b></p>
           </div>
         </div>
 
@@ -164,10 +164,10 @@ export default function Contact() {
                     </div>
                   </fieldset>
                   <div className="grid gap-4 sm:grid-cols-2">
-                    <Field id="name" label="Full name" required autoComplete="name" value={f.name} onChange={set('name')} error={errors.name} message="Please add your name." />
-                    <Field id="company" label="Company" required autoComplete="organization" value={f.company} onChange={set('company')} error={errors.company} message="Please add your company." />
-                    <Field id="email" label="Work email" type="email" required autoComplete="email" value={f.email} onChange={set('email')} error={errors.email} message="Please enter a valid work email." />
-                    <Field id="phone" label="Phone" type="tel" autoComplete="tel" value={f.phone} onChange={set('phone')} />
+                    <Field id="name" label="Full name" required autoComplete="name" maxLength={100} value={f.name} onChange={set('name')} error={errors.name} message="Please add your name." />
+                    <Field id="company" label="Company" required autoComplete="organization" maxLength={150} value={f.company} onChange={set('company')} error={errors.company} message="Please add your company." />
+                    <Field id="email" label="Work email" type="email" required autoComplete="email" maxLength={200} value={f.email} onChange={set('email')} error={errors.email} message="Please enter a valid work email." />
+                    <Field id="phone" label="Phone" type="tel" autoComplete="tel" maxLength={40} value={f.phone} onChange={set('phone')} error={errors.phone} message="Please enter a valid phone number, or leave it blank." />
                   </div>
                   <div className="grid gap-4 sm:grid-cols-2">
                     <label className="relative block">
@@ -190,13 +190,13 @@ export default function Contact() {
                       </div>
                     </fieldset>
                   </div>
-                  <Field id="message" label="How can we help?" textarea value={f.message} onChange={set('message')} />
+                  <Field id="message" label="How can we help?" textarea maxLength={3000} value={f.message} onChange={set('message')} />
                   {/* honeypot: invisible to people, tempting to bots (the API silently drops anything that fills it) */}
                   <div aria-hidden className="absolute -left-[9999px] h-px w-px overflow-hidden">
                     <label htmlFor="website">Website</label>
                     <input ref={honeypot} id="website" name="website" type="text" tabIndex={-1} autoComplete="off" defaultValue="" />
                   </div>
-                  {Object.values(errors).some(Boolean) && <p role="alert" className="text-[14px] text-red-600">Please add your name, company and a valid work email so we can reply.</p>}
+                  {(errors.name || errors.company || errors.email) && <p role="alert" className="text-[14px] text-red-600">Please add your name, company and a valid work email so we can reply.</p>}
                   {status === 'error' && (
                     <p role="alert" className="flex gap-2.5 rounded-2xl bg-red-50 px-4 py-3 text-[14px] leading-relaxed text-red-700">
                       <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
