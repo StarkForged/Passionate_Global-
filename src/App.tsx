@@ -17,6 +17,7 @@ import Life from '@/components/sections/Life';
 import Testimonials from '@/components/sections/Testimonials';
 import Contact, { CtaBand } from '@/components/sections/Contact';
 import Footer from '@/components/sections/Footer';
+import CookieBanner, { COOKIE_BANNER_ENABLED } from '@/components/CookieBanner';
 
 export default function App() {
   useEffect(() => {
@@ -59,6 +60,7 @@ export default function App() {
         <LazyHydrate k="contact"><Contact /></LazyHydrate>
       </main>
       <LazyHydrate k="footer"><Footer /></LazyHydrate>
+      {COOKIE_BANNER_ENABLED && <CookieBanner />}
     </div>
   );
 }

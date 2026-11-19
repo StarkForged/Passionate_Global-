@@ -46,7 +46,12 @@ export default function Footer() {
         <p className="whitespace-nowrap text-center font-display text-[clamp(2.4rem,10.2vw,10.5rem)] font-bold leading-[0.82] tracking-[-0.06em]" style={{ background: 'linear-gradient(180deg, rgba(90,165,255,.42), rgba(90,165,255,0) 88%)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }}>PASSIONATE GLOBAL</p>
       </div>
       <div className="container-site relative flex flex-wrap items-center justify-between gap-4 border-t border-white/[0.07] py-7 text-[13px]">
-        <span suppressHydrationWarning>© {new Date().getFullYear()} Passionate Global. All rights reserved.</span>
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+          <span suppressHydrationWarning>© {new Date().getFullYear()} Passionate Global. All rights reserved.</span>
+          {/* launch 6: legal pages */}
+          <a href="/privacy-policy" className="transition hover:text-white">Privacy Policy</a>
+          <a href="/cookie-policy" className="transition hover:text-white">Cookie Policy</a>
+        </div>
         <button onClick={() => scrollToHash('#home')} className="group flex items-center gap-2 transition hover:text-white">Back to top <span className="grid h-9 w-9 place-items-center rounded-full border border-white/15 transition group-hover:-translate-y-1 group-hover:border-brand group-hover:bg-brand"><ArrowUp className="h-4 w-4" /></span></button>
       </div>
     </footer>

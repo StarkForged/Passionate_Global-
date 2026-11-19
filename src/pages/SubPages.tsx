@@ -48,6 +48,7 @@ function Rich({ text }: { text: string }) {
   );
 }
 
+// DRAFT: needs client/legal review (Privacy Policy + Cookie Policy copy lives in src/data/legal.ts)
 export function LegalPage({ page }: { page: Exclude<PageId, 'home' | 'notfound'> }) {
   const doc: LegalDoc = page === 'privacy' ? privacy : cookies;
   return (
