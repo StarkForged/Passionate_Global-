@@ -24,6 +24,16 @@ export async function prerender() {
     writeFileSync(new URL(file, dist), out);
     console.log(`prerender: ${file.padEnd(20)} ${(out.length / 1024).toFixed(0)} kB`);
   }
+
+  // sitemap.xml: the indexable pages (not the 404), lastmod = build date
+  const day = (process.env.BUILD_TIME ?? new Date().toISOString()).slice(0, 10);
+  const urls = [['/', '1.0'], ['/privacy-policy', '0.3'], ['/cookie-policy', '0.3']];
+  writeFileSync(new URL('sitemap.xml', dist), `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urls.map(([u, p]) => `  <url><loc>https://www.passionateglobal.co.in${u}</loc><lastmod>${day}</lastmod><priority>${p}</priority></url>`).join('\n')}
+</urlset>
+`);
+  console.log('prerender: sitemap.xml');
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) await prerender();

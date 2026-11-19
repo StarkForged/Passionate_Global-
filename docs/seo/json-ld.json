@@ -1,0 +1,124 @@
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://www.passionateglobal.co.in/#organization",
+      "name": "Passionate Global",
+      "alternateName": "Passionate Staffing Solutions",
+      "url": "https://www.passionateglobal.co.in/",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://www.passionateglobal.co.in/icon-512.png",
+        "width": 512,
+        "height": 512
+      },
+      "image": "https://www.passionateglobal.co.in/og-image.png",
+      "description": "Dedicated offshore teams for Recruitment Businesses.",
+      "email": "hitesh@passionateglobal.co.in",
+      "telephone": "+91 90165 51051",
+      "foundingDate": "2022-01",
+      "founder": {
+        "@type": "Person",
+        "name": "Hitesh Vaishnav",
+        "jobTitle": "Founder & CEO"
+      },
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "301, Indraprastha Corporate, Prahlad Nagar",
+        "addressLocality": "Ahmedabad",
+        "addressRegion": "Gujarat",
+        "postalCode": "380015",
+        "addressCountry": "IN"
+      },
+      "areaServed": [
+        "GB",
+        "IE",
+        "EU",
+        "CA",
+        "US",
+        "AU"
+      ],
+      "sameAs": [
+        "https://www.linkedin.com/company/passionate-global-private-limited/",
+        "https://www.instagram.com/passionate_global_/"
+      ],
+      "contactPoint": [
+        {
+          "@type": "ContactPoint",
+          "telephone": "+91 90165 51051",
+          "email": "hitesh@passionateglobal.co.in",
+          "contactType": "sales",
+          "areaServed": [
+            "IN",
+            "GB",
+            "IE",
+            "EU",
+            "CA",
+            "US",
+            "AU"
+          ],
+          "availableLanguage": [
+            "en"
+          ]
+        }
+      ]
+    },
+    {
+      "@type": "ProfessionalService",
+      "@id": "https://www.passionateglobal.co.in/#business",
+      "name": "Passionate Global",
+      "alternateName": "Passionate Staffing Solutions",
+      "url": "https://www.passionateglobal.co.in/",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://www.passionateglobal.co.in/icon-512.png",
+        "width": 512,
+        "height": 512
+      },
+      "image": "https://www.passionateglobal.co.in/og-image.png",
+      "description": "Dedicated offshore teams for Recruitment Businesses: recruitment support, finance and accounting, out-of-hours and business support services.",
+      "email": "hitesh@passionateglobal.co.in",
+      "telephone": "+91 90165 51051",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "301, Indraprastha Corporate, Prahlad Nagar",
+        "addressLocality": "Ahmedabad",
+        "addressRegion": "Gujarat",
+        "postalCode": "380015",
+        "addressCountry": "IN"
+      },
+      "areaServed": [
+        "GB",
+        "IE",
+        "EU",
+        "CA",
+        "US",
+        "AU"
+      ],
+      "parentOrganization": {
+        "@id": "https://www.passionateglobal.co.in/#organization"
+      },
+      "founder": {
+        "@type": "Person",
+        "name": "Hitesh Vaishnav"
+      },
+      "foundingDate": "2022-01",
+      "sameAs": [
+        "https://www.linkedin.com/company/passionate-global-private-limited/",
+        "https://www.instagram.com/passionate_global_/"
+      ]
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://www.passionateglobal.co.in/#website",
+      "url": "https://www.passionateglobal.co.in/",
+      "name": "Passionate Global",
+      "alternateName": "Passionate Staffing Solutions",
+      "inLanguage": "en-GB",
+      "publisher": {
+        "@id": "https://www.passionateglobal.co.in/#organization"
+      }
+    }
+  ]
+}

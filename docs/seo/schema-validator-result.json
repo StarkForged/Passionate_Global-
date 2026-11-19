@@ -1,0 +1,11 @@
+{
+  "validator": "validator.schema.org",
+  "date": "2026-11-19",
+  "numObjects": 2,
+  "errors": 0,
+  "warnings": 0,
+  "types": [
+    "WebSite",
+    "ProfessionalService"
+  ]
+}
