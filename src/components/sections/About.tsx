@@ -79,6 +79,13 @@ export default function About() {
         <div className="flex flex-col items-start gap-6">
           <Reveal y={12}><Tag>{about.eyebrow}</Tag></Reveal>
           <SplitHeading text={about.title} highlight={['differently']} className="h-section max-w-[16ch] text-ink" />
+          {/* launch: the former name, a quiet detail under the H2 (hairline + muted text, not a new block) */}
+          <Reveal delay={0.15} y={8}>
+            <p className="flex items-start gap-3 text-[16px] leading-[1.5] text-muted">
+              <span aria-hidden className="mt-[0.75em] h-px w-8 shrink-0 bg-gradient-to-r from-brand/60 to-brand/0" />
+              <span className="max-w-[34ch] [text-wrap:balance]">{about.formerly}</span>
+            </p>
+          </Reveal>
         </div>
         <Reveal delay={0.1}><p className="text-[17px] leading-[1.75] text-muted">{hero.body}</p></Reveal>
       </div>
