@@ -1,7 +1,7 @@
 # Baseline audit (before launch work), 2026-11-19
 
 Build: `npm ci && npm run build` on commit `9d30620`, served with `vite preview` (localhost:4173).
-Lighthouse 12.2.1, headless Chrome 157 (simulated throttling). Reports: `lighthouse-baseline-{mobile,desktop}.report.html`.
+Lighthouse 12.2.1, headless Chrome 157 (simulated throttling). Reports: `lh-baseline-{mobile,desktop}.report.html`.
 
 ## Scores
 

@@ -1,0 +1,8 @@
+dist/index.html                                                    2.11 kB │ gzip:   0.88 kB
+dist/assets/index-_hwp1Byr.css                                    77.95 kB │ gzip:  16.15 kB
+dist/assets/geo-BaOzu--n.js                                       70.46 kB │ gzip:   4.92 kB
+dist/assets/motion-C3IH550H.js                                   126.91 kB │ gzip:  42.25 kB
+dist/assets/scroll-C8ZfL2iT.js                                   126.95 kB │ gzip:  48.62 kB
+dist/assets/react-CDaEziDZ.js                                    145.98 kB │ gzip:  47.12 kB
+dist/assets/index-BNlDjzOg.js                                    221.25 kB │ gzip:  68.95 kB
+dist/assets/Globe-DHHYltvE.js                                    893.39 kB │ gzip: 239.71 kB
