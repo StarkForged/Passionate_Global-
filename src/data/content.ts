@@ -7,10 +7,15 @@
 export const company = {
   name: 'Passionate Global',
   tagline: 'Your Trusted Global Partner',
-  // Source: the founder's visiting card (docs/references/visiting-card-back.png), Nov 2026.
-  // The card lists one Indian number; if the client supplies a UK number, add it to `phones`.
-  address: '301, Indraprastha Corporate, Prahlad Nagar, Ahmedabad, India – 380015',
+  formerName: 'Passionate Staffing Solutions',
+  founded: '2022-01', // started January 2022 as Passionate Staffing Solutions (client, launch brief)
+  // Confirmed contact details (client, launch brief Nov 2026). Structured address for JSON-LD / pre-rendered meta.
+  address: '301, Indraprastha Corporate, Prahlad Nagar, Ahmedabad, Gujarat 380015, India',
+  postal: { street: '301, Indraprastha Corporate, Prahlad Nagar', locality: 'Ahmedabad', region: 'Gujarat', postcode: '380015', country: 'IN' },
   city: 'Ahmedabad, India',
+  // UK number: ONE line, put it FIRST, e.g.
+  //   { label: 'UK', value: '+44 20 XXXX XXXX', href: 'tel:+4420XXXXXXXX' },
+  // Contact, Footer and JSON-LD (telephone + contactPoint) all read this array. Labels show once there are 2+ numbers.
   phones: [
     { label: 'IN', value: '+91 90165 51051', href: 'tel:+919016551051' },
   ],
