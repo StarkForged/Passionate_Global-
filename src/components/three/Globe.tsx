@@ -6,7 +6,7 @@
  * `progress` (0..1, scroll through the hero) makes the planet rise and scale up ~1.3×.
  */
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { Html, Stars } from '@react-three/drei';
+import { Html, PerformanceMonitor, Stars } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
@@ -237,9 +237,13 @@ function Planet({ progress }: { progress: React.MutableRefObject<number> }) {
   );
 }
 
-export default function Globe({ progress }: { progress: React.MutableRefObject<number> }) {
+export default function Globe({ progress, onReady }: { progress: React.MutableRefObject<number>; onReady?: () => void }) {
   const wrap = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(true);
+  // launch 4: adapt to the device. Start at the screen's DPR (max 1.75); a struggling GPU drops to 1 and loses bloom.
+  const [dpr, setDpr] = useState(() => Math.min(window.devicePixelRatio || 1, 1.75));
+  const [fx, setFx] = useState(true);
+  const degrade = () => { setDpr(1); setFx(false); };
   useEffect(() => {
     const io = new IntersectionObserver(([e]) => setVisible(e.isIntersecting), { rootMargin: '100px' });
     if (wrap.current) io.observe(wrap.current);
@@ -247,12 +251,16 @@ export default function Globe({ progress }: { progress: React.MutableRefObject<n
   }, []);
   return (
     <div ref={wrap} className="absolute inset-0">
-      <Canvas frameloop={visible ? 'always' : 'never'} dpr={[1, 1.75]} camera={{ position: [0, 0, 6], fov: 35 }} gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}>
+      <Canvas frameloop={visible ? 'always' : 'never'} dpr={dpr} camera={{ position: [0, 0, 6], fov: 35 }} gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
+        onCreated={() => requestAnimationFrame(() => requestAnimationFrame(() => onReady?.()))}>
+        <PerformanceMonitor flipflops={3} onDecline={degrade} onFallback={degrade} />
         <Stars radius={60} depth={30} count={1100} factor={2.2} saturation={0} fade speed={0.4} />
         <Planet progress={progress} />
-        <EffectComposer multisampling={0}>
-          <Bloom mipmapBlur intensity={0.4} luminanceThreshold={0.55} luminanceSmoothing={0.2} radius={0.5} />
-        </EffectComposer>
+        {fx && (
+          <EffectComposer multisampling={0}>
+            <Bloom mipmapBlur intensity={0.4} luminanceThreshold={0.55} luminanceSmoothing={0.2} radius={0.5} />
+          </EffectComposer>
+        )}
       </Canvas>
     </div>
   );

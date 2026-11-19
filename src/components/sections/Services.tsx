@@ -7,7 +7,7 @@ import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, typ
 import { AnimatePresence, motion, useAnimationFrame, useInView, useMotionValue, useMotionValueEvent, useScroll, useTransform, type MotionValue } from 'framer-motion';
 import { Check, UserRound, Inbox, CircleCheck } from 'lucide-react';
 import { services } from '@/data/content';
-import { isHydrating } from '@/lib/hydration';
+import { useHydrated } from '@/lib/hydration';
 import { Clock, EASE, Reveal, SectionHeader } from '@/components/ui';
 import { formatTime, hourIn, useNow } from '@/hooks/useClock';
 import { useMedia } from '@/hooks/useMedia';
@@ -285,8 +285,9 @@ const usePinnedZone = () => useSyncExternalStore((f) => { zoneStore.subs.add(f);
 /** Index of the zone shown in the centre: pinned, else auto-cycling (UK only with reduced motion). */
 function useActiveZone(now: Date) {
   const pinned = usePinnedZone();
+  const hydrated = useHydrated();
   if (pinned !== null) return pinned;
-  if (prefersReducedMotion() || isHydrating()) return 0; // deterministic first render (matches the pre-rendered HTML)
+  if (prefersReducedMotion() || !hydrated) return 0; // deterministic first render (matches the pre-rendered HTML)
   return Math.floor((now.getTime() - T0) / ZONE_EVERY) % ZONES.length;
 }
 const OFFICE = ooh.officeHours ?? { from: 9, to: 17 };

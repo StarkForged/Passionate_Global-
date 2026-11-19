@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { BUILD_TIME, isHydrating, useIsoLayoutEffect } from '@/lib/hydration';
+import { useCallback, useSyncExternalStore } from 'react';
+import { BUILD_TIME } from '@/lib/hydration';
 
 const cache: Record<string, Intl.DateTimeFormat> = {};
 export const formatTime = (tz: string, d = new Date(), seconds = false) => {
@@ -8,13 +8,29 @@ export const formatTime = (tz: string, d = new Date(), seconds = false) => {
   return cache[key].format(d);
 };
 
-/** Re-renders every `interval` ms and returns the current Date. Server + hydration render use BUILD_TIME (so the
- *  pre-rendered HTML hydrates without a mismatch); the real time is set in a layout effect before the first paint. */
+/** One shared ticking clock per interval (all subscribers update together). */
+type Ticker = { now: Date; subs: Set<() => void>; id?: ReturnType<typeof setInterval> };
+const tickers = new Map<number, Ticker>();
+const ticker = (interval: number) => {
+  let t = tickers.get(interval);
+  if (!t) tickers.set(interval, (t = { now: new Date(), subs: new Set() }));
+  return t;
+};
+function subscribe(interval: number, cb: () => void) {
+  const t = ticker(interval);
+  if (!t.subs.size) {
+    t.now = new Date();
+    t.id = setInterval(() => { t.now = new Date(); t.subs.forEach((f) => f()); }, interval);
+  }
+  t.subs.add(cb);
+  return () => { t.subs.delete(cb); if (!t.subs.size) clearInterval(t.id); };
+}
+
+/** Re-renders every `interval` ms and returns the current Date. While hydrating (and on the server) it returns
+ *  BUILD_TIME, so the pre-rendered clocks hydrate without a mismatch; React then re-renders with the real time. */
 export function useNow(interval = 1000) {
-  const [now, setNow] = useState(() => (isHydrating() ? BUILD_TIME : new Date()));
-  useIsoLayoutEffect(() => { setNow(new Date()); }, []);
-  useEffect(() => { const id = setInterval(() => setNow(new Date()), interval); return () => clearInterval(id); }, [interval]);
-  return now;
+  const sub = useCallback((cb: () => void) => subscribe(interval, cb), [interval]);
+  return useSyncExternalStore(sub, () => ticker(interval).now, () => BUILD_TIME);
 }
 
 export function useClock(tz: string, seconds = false) {
@@ -23,8 +39,10 @@ export function useClock(tz: string, seconds = false) {
 }
 
 /** Hour (0-24 float) in a timezone. */
+const hourFmt: Record<string, Intl.DateTimeFormat> = {};
 export function hourIn(tz: string, d = new Date()) {
-  const p = new Intl.DateTimeFormat('en-GB', { hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: false, timeZone: tz }).formatToParts(d);
+  hourFmt[tz] ??= new Intl.DateTimeFormat('en-GB', { hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: false, timeZone: tz });
+  const p = hourFmt[tz].formatToParts(d);
   const g = (t: string) => +(p.find((x) => x.type === t)?.value ?? 0);
   return (g('hour') % 24) + g('minute') / 60 + g('second') / 3600;
 }

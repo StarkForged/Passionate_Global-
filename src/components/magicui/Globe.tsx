@@ -2,7 +2,7 @@
  * Magic UI Globe (cobe), ported + extended: light theme in brand colours, draggable, and `focus`
  * rotates the globe to a [lat, lng] (shortest path). Pauses when off-screen.
  */
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import createGlobe, { type Marker } from 'cobe';
 import { cn } from '@/lib/utils';
 import { prefersReducedMotion } from '@/lib/scroll';
@@ -21,7 +21,16 @@ export function Globe({ markers, focus, className }: { markers: Marker[]; focus:
   markersRef.current = markers;
   useEffect(() => { target.current = toAngles(...focus); offset.current = { phi: 0, theta: 0 }; }, [focus]);
 
+  // launch 4: create the WebGL globe only when it comes near the viewport (it sits far below the fold)
+  const [near, setNear] = useState(false);
   useEffect(() => {
+    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setNear(true); io.disconnect(); } }, { rootMargin: '600px 0px' });
+    io.observe(canvas.current!);
+    return () => io.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!near) return;
     const el = canvas.current!;
     let width = el.offsetWidth;
     let phi = target.current[0], theta = target.current[1] * 0.6;
@@ -58,7 +67,7 @@ export function Globe({ markers, focus, className }: { markers: Marker[]; focus:
     io.observe(el);
     requestAnimationFrame(() => (el.style.opacity = '1'));
     return () => { io.disconnect(); globe.destroy(); removeEventListener('resize', onResize); };
-  }, []);
+  }, [near]);
 
   return (
     <div className={cn('relative aspect-square w-full', className)}>

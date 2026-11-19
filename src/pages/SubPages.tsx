@@ -9,11 +9,9 @@ import Footer from '@/components/sections/Footer';
 import { Button, Tag } from '@/components/ui';
 import { company, pagesCopy } from '@/data/content';
 import { cookies, privacy, LEGAL_UPDATED, type LegalDoc } from '@/data/legal';
-import { useIsoLayoutEffect, markHydrated } from '@/lib/hydration';
 import type { PageId } from '@/lib/page';
 
 function Shell({ children, band }: { children: ReactNode; band: ReactNode }) {
-  useIsoLayoutEffect(() => { markHydrated(); }, []);
   return (
     <div className="grain">
       <a href="#main" className="skip-link">Skip to content</a>

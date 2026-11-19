@@ -1,17 +1,14 @@
-import { useState } from 'react';
-import { isHydrating, useIsoLayoutEffect } from '@/lib/hydration';
+import { useCallback, useSyncExternalStore } from 'react';
 
-/** Live `matchMedia` result. `false` on the server and while hydrating (matches the pre-rendered HTML), then the real
- *  value in a layout effect, so the switch happens before the hydrated page is painted. */
+/** Live `matchMedia` result. `false` on the server and while hydrating (matches the pre-rendered HTML); React then
+ *  re-renders with the real value before the hydrated section is painted. */
 export function useMedia(query: string) {
-  const [match, setMatch] = useState(() => !isHydrating() && window.matchMedia(query).matches);
-  useIsoLayoutEffect(() => {
+  const subscribe = useCallback((cb: () => void) => {
     const mq = window.matchMedia(query);
-    const on = () => setMatch(mq.matches);
-    on(); mq.addEventListener('change', on);
-    return () => mq.removeEventListener('change', on);
+    mq.addEventListener('change', cb);
+    return () => mq.removeEventListener('change', cb);
   }, [query]);
-  return match;
+  return useSyncExternalStore(subscribe, () => window.matchMedia(query).matches, () => false);
 }
 
 /** Desktop + motion allowed: gate pinned / scroll-scrubbed layouts on this. */
