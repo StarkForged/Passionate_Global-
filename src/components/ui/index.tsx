@@ -168,7 +168,7 @@ export function Clock({ value, className }: { value: string; className?: string 
 export function Logo({ light = false, className }: { light?: boolean; className?: string }) {
   return (
     <span className={clsx('flex items-center gap-2.5', className)}>
-      <img src={light ? '/img/logo-mark-light.png' : '/img/logo-mark.png'} alt="" className="h-9 w-auto" />
+      <img src={light ? '/img/logo-mark-light.webp' : '/img/logo-mark.webp'} alt="" width={34} height={36} draggable={false} className="no-save h-9 w-auto" />
       <span className={clsx('flex flex-col font-display text-[13px] font-bold leading-[1.02] tracking-[0.02em]', light ? 'text-white' : 'text-navy')}>
         <span>PASSIONATE</span><span>GLOBAL</span>
       </span>

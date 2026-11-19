@@ -23,7 +23,7 @@ export default function Preloader() {
           <div className="pointer-events-none absolute left-1/2 top-1/2 h-[360px] w-[360px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(closest-side,rgba(3,97,219,.35),transparent)]" />
           <div className="relative flex flex-col items-center gap-6">
             <motion.div className="relative h-[112px] w-[115px]" initial={{ scale: 0.82, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.6, ease: EASE }}>
-              <img src={LOGO} alt="" width={256} height={249} decoding="async" className="h-full w-full object-contain drop-shadow-[0_12px_28px_rgba(3,97,219,.45)]" />
+              <img src={LOGO} alt="" width={256} height={249} decoding="async" draggable={false} className="no-save h-full w-full object-contain drop-shadow-[0_12px_28px_rgba(3,97,219,.45)]" />
               {/* single white light sweep, clipped to the logo */}
               <motion.div aria-hidden className="absolute inset-0" style={{ ...mask, backgroundImage: 'linear-gradient(105deg, transparent 35%, rgba(255,255,255,.85) 50%, transparent 65%)', backgroundSize: '250% 100%', backgroundRepeat: 'no-repeat' }}
                 initial={{ backgroundPosition: '120% 0' }} animate={{ backgroundPosition: '-20% 0' }} transition={{ duration: 0.6, delay: 0.4, ease: [0.45, 0, 0.25, 1] }} />

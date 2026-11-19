@@ -46,7 +46,7 @@ function Orbit() {
           <span className="absolute inset-[-10px] rounded-full border border-brand/10" />
           {/* round 5: the client's 3D glass logo (glass = light backgrounds only), floating ±6px */}
           <img src="/img/brand/logo-3d-glass-256.webp" alt="Passionate Global" width={256} height={248} loading="lazy" decoding="async"
-            className="logo-float h-[84px] w-auto drop-shadow-[0_10px_14px_rgba(3,97,219,.22)]" />
+            draggable={false} className="no-save logo-float h-[84px] w-auto drop-shadow-[0_10px_14px_rgba(3,97,219,.22)]" />
         </div>
       </div>
     </div>

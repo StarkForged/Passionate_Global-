@@ -18,7 +18,7 @@ function Backdrop({ big }: { big?: boolean }) {
   return (
     <>
       <div className="absolute inset-0 bg-[linear-gradient(150deg,#DCE8F7_0%,#EDF3FB_48%,#FFFFFF_100%)]" />
-      <img src={WATERMARK.src} srcSet={WATERMARK.srcSet} sizes={big ? '420px' : '(min-width: 768px) 32vw, 95vw'} alt="" aria-hidden width={600} height={582} loading="lazy" decoding="async"
+      <img src={WATERMARK.src} srcSet={WATERMARK.srcSet} sizes={big ? '420px' : '(min-width: 768px) 32vw, 95vw'} alt="" aria-hidden width={600} height={582} loading="lazy" decoding="async" draggable={false}
         className="pointer-events-none absolute -bottom-[18%] -right-[34%] w-full -rotate-[8deg] select-none opacity-[.24] transition-transform duration-[1.2s] ease-out [filter:saturate(.8)] group-hover:-rotate-[12deg] group-hover:scale-[1.03]" />
       <div className="absolute inset-0 bg-[linear-gradient(115deg,transparent_38%,rgba(255,255,255,.6)_50%,transparent_62%)]" />
     </>
@@ -38,11 +38,13 @@ export function Portrait({ initials, photo, name, className, big, sizes: sz }: {
     <div className={clsx('isolate overflow-hidden', className)}>
       <Backdrop big={big} />
       {photo ? (
-        <img src={photo} srcSet={srcSet} sizes={sz} alt={`Portrait of ${name}`} width={w} height={h} loading="lazy" decoding="async"
-          className="absolute bottom-0 left-1/2 h-[82%] w-auto max-w-none -translate-x-1/2 [filter:drop-shadow(0_20px_28px_rgba(1,21,45,.16))]" />
+        <img src={photo} srcSet={srcSet} sizes={sz} alt={`Portrait of ${name}`} width={w} height={h} loading="lazy" decoding="async" draggable={false}
+          className="no-save absolute bottom-0 left-1/2 h-[82%] w-auto max-w-none -translate-x-1/2 [filter:drop-shadow(0_20px_28px_rgba(1,21,45,.16))]" />
       ) : (
         <span className={clsx('absolute inset-0 grid place-items-center font-display font-light leading-none tracking-[-0.06em] text-navy/80', big ? 'text-[clamp(6rem,11vw,9rem)]' : 'text-[clamp(4.5rem,7vw,6rem)]')}>{initials}</span>
       )}
+      {/* transparent shield over the photo: "Save image" / drag grabs nothing useful */}
+      {photo && <span aria-hidden className="no-save absolute inset-0 z-[1]" />}
       {/* faint rim light along the top edge */}
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white to-transparent" />
     </div>
