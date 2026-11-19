@@ -16,11 +16,10 @@ export const company = {
   ],
   email: 'hitesh@passionateglobal.co.in',
   website: { label: 'www.passionateglobal.co.in', href: 'https://www.passionateglobal.co.in' },
-  // An empty value hides the icon (the old Facebook page was removed with the old contact details).
+  // The only two social profiles (client, launch brief Nov 2026). An empty value hides the icon.
   socials: {
     linkedin: 'https://www.linkedin.com/company/passionate-global-private-limited/', // client, Nov 2026
     instagram: 'https://www.instagram.com/passionate_global_/', // client, Nov 2026 (share-tracking params removed)
-    facebook: '',
   },
 };
 

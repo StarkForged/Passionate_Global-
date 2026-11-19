@@ -1,4 +1,4 @@
-import { ArrowUp, Linkedin, Instagram, Facebook } from 'lucide-react';
+import { ArrowUp, Linkedin, Instagram } from 'lucide-react';
 import { company, nav } from '@/data/content';
 import { ExternalLink, Logo } from '@/components/ui';
 import { scrollToHash } from '@/lib/scroll';
@@ -15,7 +15,7 @@ export default function Footer() {
             <Logo light />
             <p className="mt-6 max-w-[36ch] text-[15px] leading-relaxed">{company.tagline}. Dedicated offshore teams that help recruitment businesses streamline operations and scale with confidence.</p>
             <div className="mt-7 flex gap-2.5">
-              {([[Linkedin, company.socials.linkedin, 'LinkedIn'], [Instagram, company.socials.instagram, 'Instagram'], [Facebook, company.socials.facebook, 'Facebook']] as const).filter(([, href]) => href).map(([Icon, href, l]) => (
+              {([[Linkedin, company.socials.linkedin, 'LinkedIn'], [Instagram, company.socials.instagram, 'Instagram']] as const).filter(([, href]) => href).map(([Icon, href, l]) => (
                 <ExternalLink key={l} href={href} aria-label={l} className="grid h-11 w-11 place-items-center rounded-xl border border-white/10 bg-white/[0.04] text-white/80 transition hover:border-brand hover:bg-brand hover:text-white"><Icon className="h-[18px] w-[18px]" /></ExternalLink>
               ))}
             </div>
