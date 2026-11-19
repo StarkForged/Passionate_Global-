@@ -2,9 +2,12 @@ import { ArrowUp, Linkedin, Instagram } from 'lucide-react';
 import { company, nav } from '@/data/content';
 import { ExternalLink, Logo } from '@/components/ui';
 import { scrollToHash } from '@/lib/scroll';
+import { usePage, useSectionHref } from '@/lib/page';
 
 export default function Footer() {
-  const go = (h: string) => (e: React.MouseEvent) => { e.preventDefault(); scrollToHash(h); };
+  const home = usePage() === 'home';
+  const to = useSectionHref();
+  const go = (h: string) => (e: React.MouseEvent) => { if (!home) return; e.preventDefault(); scrollToHash(h); };
   return (
     <footer data-theme="dark" className="relative overflow-hidden bg-deep pt-24 text-[#9FB3CF]">
       <div className="pointer-events-none absolute left-1/2 top-0 h-px w-[80%] -translate-x-1/2 bg-gradient-to-r from-transparent via-sky/40 to-transparent" />
@@ -22,11 +25,11 @@ export default function Footer() {
           </div>
           <div>
             <p className="mb-5 text-[13px] font-semibold uppercase tracking-[0.14em] text-white">Explore</p>
-            <ul className="space-y-3 text-[15px]">{nav.map((n) => <li key={n.href}><a href={n.href} onClick={go(n.href)} className="transition hover:text-white">{n.label}</a></li>)}</ul>
+            <ul className="space-y-3 text-[15px]">{nav.map((n) => <li key={n.href}><a href={to(n.href)} onClick={go(n.href)} className="transition hover:text-white">{n.label}</a></li>)}</ul>
           </div>
           <div>
             <p className="mb-5 text-[13px] font-semibold uppercase tracking-[0.14em] text-white">Services</p>
-            <ul className="space-y-3 text-[15px]">{['Recruitment Support', 'Finance & Accounting', 'Out-of-Hours Support', 'Business Support', 'IT & Security'].map((s) => <li key={s}><a href={s === 'IT & Security' ? '#security' : '#services'} onClick={go(s === 'IT & Security' ? '#security' : '#services')} className="transition hover:text-white">{s}</a></li>)}</ul>
+            <ul className="space-y-3 text-[15px]">{['Recruitment Support', 'Finance & Accounting', 'Out-of-Hours Support', 'Business Support', 'IT & Security'].map((s) => <li key={s}><a href={to(s === 'IT & Security' ? '#security' : '#services')} onClick={go(s === 'IT & Security' ? '#security' : '#services')} className="transition hover:text-white">{s}</a></li>)}</ul>
           </div>
           <div>
             <p className="mb-5 text-[13px] font-semibold uppercase tracking-[0.14em] text-white">Contact</p>
@@ -43,7 +46,7 @@ export default function Footer() {
         <p className="whitespace-nowrap text-center font-display text-[clamp(2.4rem,10.2vw,10.5rem)] font-bold leading-[0.82] tracking-[-0.06em]" style={{ background: 'linear-gradient(180deg, rgba(90,165,255,.42), rgba(90,165,255,0) 88%)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }}>PASSIONATE GLOBAL</p>
       </div>
       <div className="container-site relative flex flex-wrap items-center justify-between gap-4 border-t border-white/[0.07] py-7 text-[13px]">
-        <span>© {new Date().getFullYear()} Passionate Global. All rights reserved.</span>
+        <span suppressHydrationWarning>© {new Date().getFullYear()} Passionate Global. All rights reserved.</span>
         <button onClick={() => scrollToHash('#home')} className="group flex items-center gap-2 transition hover:text-white">Back to top <span className="grid h-9 w-9 place-items-center rounded-full border border-white/15 transition group-hover:-translate-y-1 group-hover:border-brand group-hover:bg-brand"><ArrowUp className="h-4 w-4" /></span></button>
       </div>
     </footer>

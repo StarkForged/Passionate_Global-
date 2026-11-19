@@ -1,9 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { isHydrating, useIsoLayoutEffect } from '@/lib/hydration';
 
-/** Live `matchMedia` result. Defaults to `false` before mount. */
+/** Live `matchMedia` result. `false` on the server and while hydrating (matches the pre-rendered HTML), then the real
+ *  value in a layout effect, so the switch happens before the hydrated page is painted. */
 export function useMedia(query: string) {
-  const [match, setMatch] = useState(() => typeof window !== 'undefined' && window.matchMedia(query).matches);
-  useEffect(() => {
+  const [match, setMatch] = useState(() => !isHydrating() && window.matchMedia(query).matches);
+  useIsoLayoutEffect(() => {
     const mq = window.matchMedia(query);
     const on = () => setMatch(mq.matches);
     on(); mq.addEventListener('change', on);

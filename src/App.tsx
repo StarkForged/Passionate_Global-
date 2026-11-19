@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
-import { initSmoothScroll, ScrollTrigger } from '@/lib/scroll';
+import { initSmoothScroll, ScrollTrigger, scrollToHash } from '@/lib/scroll';
+import { markHydrated, useIsoLayoutEffect } from '@/lib/hydration';
 import Nav from '@/components/Nav';
 import Preloader from '@/components/Preloader';
 import Hero from '@/components/sections/Hero';
@@ -18,19 +19,25 @@ import Contact, { CtaBand } from '@/components/sections/Contact';
 import Footer from '@/components/sections/Footer';
 
 export default function App() {
+  // root layout effect = runs after every child's: hydration is complete
+  useIsoLayoutEffect(() => { markHydrated(); }, []);
   useEffect(() => {
     initSmoothScroll();
     const refresh = () => ScrollTrigger.refresh();
     const t = setTimeout(refresh, 1500);
     addEventListener('load', refresh);
     document.fonts?.ready.then(refresh);
-    return () => { clearTimeout(t); removeEventListener('load', refresh); };
+    // arriving with a section hash (e.g. /#contact from the privacy page): land on it once the layout has settled
+    const hash = /^#[a-z][\w-]*$/i.test(location.hash) ? location.hash : '';
+    const h = hash ? setTimeout(() => { refresh(); scrollToHash(hash, true); }, 1600) : undefined;
+    return () => { clearTimeout(t); clearTimeout(h); removeEventListener('load', refresh); };
   }, []);
   return (
     <div className="grain">
+      <a href="#main" className="skip-link">Skip to content</a>
       <Preloader />
       <Nav />
-      <main>
+      <main id="main" tabIndex={-1} className="outline-none">
         <Hero />
         <About />
         <Purpose />

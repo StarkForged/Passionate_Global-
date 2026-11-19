@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { BUILD_TIME, isHydrating, useIsoLayoutEffect } from '@/lib/hydration';
 
 const cache: Record<string, Intl.DateTimeFormat> = {};
 export const formatTime = (tz: string, d = new Date(), seconds = false) => {
@@ -7,9 +8,11 @@ export const formatTime = (tz: string, d = new Date(), seconds = false) => {
   return cache[key].format(d);
 };
 
-/** Re-renders every `interval` ms and returns the current Date. */
+/** Re-renders every `interval` ms and returns the current Date. Server + hydration render use BUILD_TIME (so the
+ *  pre-rendered HTML hydrates without a mismatch); the real time is set in a layout effect before the first paint. */
 export function useNow(interval = 1000) {
-  const [now, setNow] = useState(() => new Date());
+  const [now, setNow] = useState(() => (isHydrating() ? BUILD_TIME : new Date()));
+  useIsoLayoutEffect(() => { setNow(new Date()); }, []);
   useEffect(() => { const id = setInterval(() => setNow(new Date()), interval); return () => clearInterval(id); }, [interval]);
   return now;
 }

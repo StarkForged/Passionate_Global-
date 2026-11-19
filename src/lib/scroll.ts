@@ -29,9 +29,10 @@ export function lockScroll(lock: boolean) {
 /** Fixed header height + top gap (CSS custom property `--nav-h`, index.css), in px. */
 export const navH = () => parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-h')) || 76;
 
-export function scrollToHash(hash: string) {
+/** Smooth-scroll to a section. On another page (privacy, cookies, 404) the section isn't there: go to the home page. */
+export function scrollToHash(hash: string, immediate = false) {
   const el = document.querySelector(hash) as HTMLElement | null;
-  if (!el) return;
-  if (lenis) lenis.scrollTo(el, { offset: hash === '#home' ? 0 : -navH(), duration: 1.4 });
-  else el.scrollIntoView({ behavior: 'smooth' });
+  if (!el) { location.href = '/' + (hash === '#home' ? '' : hash); return; }
+  if (lenis) lenis.scrollTo(el, { offset: hash === '#home' ? 0 : -navH(), duration: 1.4, immediate });
+  else el.scrollIntoView({ behavior: immediate ? 'auto' : 'smooth' });
 }

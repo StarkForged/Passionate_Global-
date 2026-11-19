@@ -7,6 +7,7 @@ import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, typ
 import { AnimatePresence, motion, useAnimationFrame, useInView, useMotionValue, useMotionValueEvent, useScroll, useTransform, type MotionValue } from 'framer-motion';
 import { Check, UserRound, Inbox, CircleCheck } from 'lucide-react';
 import { services } from '@/data/content';
+import { isHydrating } from '@/lib/hydration';
 import { Clock, EASE, Reveal, SectionHeader } from '@/components/ui';
 import { formatTime, hourIn, useNow } from '@/hooks/useClock';
 import { useMedia } from '@/hooks/useMedia';
@@ -279,13 +280,13 @@ const ZONE_EVERY = 3000;
 // tiny shared store so the (scaled) dial and the (unscaled, phone) legend agree on the pinned zone
 const zoneStore = { pinned: null as number | null, subs: new Set<() => void>() };
 const pinZone = (i: number | null) => { zoneStore.pinned = i; zoneStore.subs.forEach((f) => f()); };
-const usePinnedZone = () => useSyncExternalStore((f) => { zoneStore.subs.add(f); return () => { zoneStore.subs.delete(f); }; }, () => zoneStore.pinned);
+const usePinnedZone = () => useSyncExternalStore((f) => { zoneStore.subs.add(f); return () => { zoneStore.subs.delete(f); }; }, () => zoneStore.pinned, () => null);
 
 /** Index of the zone shown in the centre: pinned, else auto-cycling (UK only with reduced motion). */
 function useActiveZone(now: Date) {
   const pinned = usePinnedZone();
   if (pinned !== null) return pinned;
-  if (prefersReducedMotion()) return 0;
+  if (prefersReducedMotion() || isHydrating()) return 0; // deterministic first render (matches the pre-rendered HTML)
   return Math.floor((now.getTime() - T0) / ZONE_EVERY) % ZONES.length;
 }
 const OFFICE = ooh.officeHours ?? { from: 9, to: 17 };

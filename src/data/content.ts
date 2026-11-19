@@ -321,3 +321,15 @@ export const contact = {
   ctaBody: "Let's create a solution that delivers greater efficiency, exceptional talent and long-term value for your business.",
   ctaButton: 'Book a Free Consultation',
 };
+
+// UI copy for the extra pages (launch, Nov 2026; not from the client doc: approve or replace).
+export const pagesCopy = {
+  notFound: {
+    eyebrow: 'Error 404',
+    title: 'This page could not be found.',
+    body: 'The link may be out of date, or the page may have moved. Everything about Passionate Global is on our home page.',
+    home: 'Back to the home page',
+    contact: 'Contact us',
+  },
+  legalNote: 'Last updated',
+};

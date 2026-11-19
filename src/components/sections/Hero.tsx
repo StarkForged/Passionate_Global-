@@ -1,5 +1,5 @@
 /** Hero — reference: ref_vid1 / ref_vid2. One planet, one headline, two buttons. */
-import { lazy, Suspense, useLayoutEffect, useRef } from 'react';
+import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { hero, trust } from '@/data/content';
 import { Button, EASE } from '@/components/ui';
@@ -31,6 +31,9 @@ export default function Hero() {
   const trustRef = useRef<HTMLDivElement>(null);
   const scrim = useRef<HTMLDivElement>(null);
   const progress = useRef(0);
+  // WebGL is client-only: not in the pre-rendered HTML, mounted after hydration (keeps hydration exact)
+  const [gl, setGl] = useState(false);
+  useEffect(() => setGl(true), []);
 
   // Scroll-scrubbed exit: planet rises + scales (inside Globe via `progress`), copy lifts away,
   // the horizon glow brightens so the light carries into the (light) About section.
@@ -53,7 +56,7 @@ export default function Hero() {
     <section ref={section} id="home" data-theme="dark" className="relative isolate flex min-h-[100svh] flex-col overflow-hidden bg-deep text-white lg:min-h-[max(100svh,820px)]">
       <div className="absolute inset-0 -z-20 bg-[radial-gradient(120%_70%_at_50%_0%,#052149_0%,#01122B_42%,#000915_75%)]" />
       <div className="absolute inset-0 -z-10">
-        <Suspense fallback={null}><Globe progress={progress} /></Suspense>
+        {gl && <Suspense fallback={null}><Globe progress={progress} /></Suspense>}
       </div>
       {/* bottom scrim keeps the trust marquee legible over the planet */}
       <div ref={scrim} className="pointer-events-none absolute inset-x-0 bottom-0 -z-10 h-40 bg-gradient-to-b from-transparent via-deep/70 to-deep/90" />

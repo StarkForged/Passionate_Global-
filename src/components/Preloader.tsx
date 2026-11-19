@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { EASE } from '@/components/ui';
+import { isHydrating } from '@/lib/hydration';
+import { prefersReducedMotion } from '@/lib/scroll';
 
 /** Short branded intro (round 5, total ≤ 1.5s): the solid 3D logo scales / fades in, one white light sweep
  *  crosses it (masked to the logo shape), then the curtain lifts. Skipped for reduced-motion users.
@@ -9,9 +11,11 @@ const LOGO = '/img/brand/logo-3d-solid-256.webp';
 const HOLD = 1050; // ms until the curtain starts lifting (curtain = 0.45s)
 
 export default function Preloader() {
-  const [done, setDone] = useState(() => matchMedia('(prefers-reduced-motion: reduce)').matches);
+  // In the pre-rendered HTML the curtain is visible (it covers the page until hydration); reduced motion skips it.
+  const [done, setDone] = useState(() => !isHydrating() && prefersReducedMotion());
   useEffect(() => {
     if (done) return;
+    if (prefersReducedMotion()) { setDone(true); return; }
     const t = setTimeout(() => setDone(true), HOLD);
     return () => clearTimeout(t);
   }, [done]);
@@ -19,7 +23,7 @@ export default function Preloader() {
   return (
     <AnimatePresence>
       {!done && (
-        <motion.div className="fixed inset-0 z-[200] flex items-center justify-center bg-deep" exit={{ clipPath: 'inset(0 0 100% 0)' }} transition={{ duration: 0.45, ease: EASE }}>
+        <motion.div id="preloader" className="fixed inset-0 z-[200] flex items-center justify-center bg-deep" exit={{ clipPath: 'inset(0 0 100% 0)' }} transition={{ duration: 0.45, ease: EASE }}>
           <div className="pointer-events-none absolute left-1/2 top-1/2 h-[360px] w-[360px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(closest-side,rgba(3,97,219,.35),transparent)]" />
           <div className="relative flex flex-col items-center gap-6">
             <motion.div className="relative h-[112px] w-[115px]" initial={{ scale: 0.82, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.6, ease: EASE }}>
