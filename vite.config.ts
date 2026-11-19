@@ -24,6 +24,7 @@ export default defineConfig({
   plugins: [react(), preloadFont()],
   resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
   build: {
+    sourcemap: false, // never ship source maps to production
     chunkSizeWarningLimit: 1600,
     assetsInlineLimit: 0,
     rollupOptions: {
