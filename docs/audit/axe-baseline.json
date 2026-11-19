@@ -1,0 +1,57 @@
+{
+  "desktop": [
+    {
+      "id": "aria-prohibited-attr",
+      "impact": "serious",
+      "help": "Elements must only use permitted ARIA attributes",
+      "count": 2,
+      "targets": [
+        ".text-\\[clamp\\(2\\.125rem\\,2\\.9vw\\,2\\.75rem\\)\\] ::   aria-label attribute cannot be used on a p with no valid role attribute.",
+        ".col-start-1.row-start-1.self-center:nth-child(2) > .max-w-\\[28ch\\].text-\\[clamp\\(1\\.75rem\\,3vw\\,2\\.6rem\\)\\].leading-\\[1\\.25\\] ::   aria-label attribute cannot be used on a div with no valid role attribute."
+      ]
+    },
+    {
+      "id": "color-contrast",
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds",
+      "count": 47,
+      "targets": [
+        ".mr-\\[0\\.25em\\][aria-hidden=\"true\"]:nth-child(1) ::   Element has insufficient color contrast of 1.36 (foreground color: #dadde0, background color: #ffffff, font size: 31.3pt (41.76px), font weight: normal). Expected contrast ratio of 3:1",
+        ".mr-\\[0\\.25em\\][aria-hidden=\"true\"]:nth-child(2) ::   Element has insufficient color contrast of 1.36 (foreground color: #dadde0, background color: #ffffff, font size: 31.3pt (41.76px), font weight: normal). Expected contrast ratio of 3:1",
+        ".mr-\\[0\\.25em\\][aria-hidden=\"true\"]:nth-child(3) ::   Element has insufficient color contrast of 1.36 (foreground color: #dadde0, background color: #ffffff, font size: 31.3pt (41.76px), font weight: normal). Expected contrast ratio of 3:1",
+        ".mr-\\[0\\.25em\\][aria-hidden=\"true\"]:nth-child(4) ::   Element has insufficient color contrast of 1.36 (foreground color: #dadde0, background color: #ffffff, font size: 31.3pt (41.76px), font weight: normal). Expected contrast ratio of 3:1",
+        ".mr-\\[0\\.25em\\][aria-hidden=\"true\"]:nth-child(5) ::   Element has insufficient color contrast of 1.36 (foreground color: #dadde0, background color: #ffffff, font size: 31.3pt (41.76px), font weight: normal). Expected contrast ratio of 3:1",
+        ".mr-\\[0\\.25em\\][aria-hidden=\"true\"]:nth-child(6) ::   Element has insufficient color contrast of 1.36 (foreground color: #dadde0, background color: #ffffff, font size: 31.3pt (41.76px), font weight: normal). Expected contrast ratio of 3:1",
+        ".mr-\\[0\\.25em\\][aria-hidden=\"true\"]:nth-child(7) ::   Element has insufficient color contrast of 1.36 (foreground color: #dadde0, background color: #ffffff, font size: 31.3pt (41.76px), font weight: normal). Expected contrast ratio of 3:1",
+        ".mr-\\[0\\.25em\\][aria-hidden=\"true\"]:nth-child(8) ::   Element has insufficient color contrast of 1.36 (foreground color: #dadde0, background color: #ffffff, font size: 31.3pt (41.76px), font weight: normal). Expected contrast ratio of 3:1"
+      ]
+    }
+  ],
+  "mobile": [
+    {
+      "id": "aria-prohibited-attr",
+      "impact": "serious",
+      "help": "Elements must only use permitted ARIA attributes",
+      "count": 1,
+      "targets": [
+        ":root ::   aria-label attribute cannot be used on a div with no valid role attribute."
+      ]
+    },
+    {
+      "id": "color-contrast",
+      "impact": "serious",
+      "help": "Elements must meet minimum color contrast ratio thresholds",
+      "count": 15,
+      "targets": [
+        "li:nth-child(2) > .hover\\:bg-white\\/60.py-4.sm\\:px-5 > .text-ink\\/60.text-\\[clamp\\(1\\.4rem\\,2\\.2vw\\,1\\.75rem\\)\\].tracking-\\[-0\\.02em\\] > .tabular-nums ::   Element has insufficient color contrast of 4.47 (foreground color: #667180, background color: #eff4f9, font size: 16.8pt (22.4px), font weight: normal). Expected contrast ratio of 4.5:1",
+        "li:nth-child(3) > .hover\\:bg-white\\/60.py-4.sm\\:px-5 > .text-ink\\/60.text-\\[clamp\\(1\\.4rem\\,2\\.2vw\\,1\\.75rem\\)\\].tracking-\\[-0\\.02em\\] > .tabular-nums ::   Element has insufficient color contrast of 4.47 (foreground color: #667180, background color: #eff4f9, font size: 16.8pt (22.4px), font weight: normal). Expected contrast ratio of 4.5:1",
+        "li:nth-child(4) > .hover\\:bg-white\\/60.py-4.sm\\:px-5 > .text-ink\\/60.text-\\[clamp\\(1\\.4rem\\,2\\.2vw\\,1\\.75rem\\)\\].tracking-\\[-0\\.02em\\] > .tabular-nums ::   Element has insufficient color contrast of 4.47 (foreground color: #667180, background color: #eff4f9, font size: 16.8pt (22.4px), font weight: normal). Expected contrast ratio of 4.5:1",
+        "li:nth-child(5) > .hover\\:bg-white\\/60.py-4.sm\\:px-5 > .text-ink\\/60.text-\\[clamp\\(1\\.4rem\\,2\\.2vw\\,1\\.75rem\\)\\].tracking-\\[-0\\.02em\\] > .tabular-nums ::   Element has insufficient color contrast of 4.47 (foreground color: #667180, background color: #eff4f9, font size: 16.8pt (22.4px), font weight: normal). Expected contrast ratio of 4.5:1",
+        "li:nth-child(6) > .hover\\:bg-white\\/60.py-4.sm\\:px-5 > .text-ink\\/60.text-\\[clamp\\(1\\.4rem\\,2\\.2vw\\,1\\.75rem\\)\\].tracking-\\[-0\\.02em\\] > .tabular-nums ::   Element has insufficient color contrast of 4.47 (foreground color: #667180, background color: #eff4f9, font size: 16.8pt (22.4px), font weight: normal). Expected contrast ratio of 4.5:1",
+        ".gap-7.pb-16.last\\:pb-0:nth-child(2) > .pt-2 > .text-ink\\/45.text-\\[clamp\\(1\\.6rem\\,2\\.4vw\\,2rem\\)\\].mt-2 ::   Element has insufficient color contrast of 2.9 (foreground color: #9198a2, background color: #ffffff, font size: 19.2pt (25.6px), font weight: normal). Expected contrast ratio of 3:1",
+        ".gap-7.pb-16.last\\:pb-0:nth-child(2) > .pt-2 > .text-muted\\/60.max-w-\\[48ch\\].leading-\\[1\\.7\\] ::   Element has insufficient color contrast of 2.46 (foreground color: #9ca6b3, background color: #ffffff, font size: 12.8pt (17px), font weight: normal). Expected contrast ratio of 4.5:1",
+        ".gap-7.pb-16.last\\:pb-0:nth-child(3) > .pt-2 > .text-ink\\/45.text-\\[clamp\\(1\\.6rem\\,2\\.4vw\\,2rem\\)\\].mt-2 ::   Element has insufficient color contrast of 2.9 (foreground color: #9198a2, background color: #ffffff, font size: 19.2pt (25.6px), font weight: normal). Expected contrast ratio of 3:1"
+      ]
+    }
+  ]
+}

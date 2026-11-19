@@ -1,0 +1,15 @@
+dist/index.html                                                    3.49 kB │ gzip:   1.06 kB
+dist/assets/inter-tight-vietnamese-wght-normal-CxflIBSm.woff2     10.44 kB
+dist/assets/inter-tight-greek-ext-wght-normal-pNDv5Qab.woff2      11.64 kB
+dist/assets/inter-tight-cyrillic-wght-normal-x48QYbAL.woff2       16.98 kB
+dist/assets/inter-tight-greek-wght-normal-B1lUOBKV.woff2          22.21 kB
+dist/assets/inter-tight-cyrillic-ext-wght-normal-CE3EbjzZ.woff2   26.67 kB
+dist/assets/inter-tight-latin-wght-normal-CbfoEWwi.woff2          45.07 kB
+dist/assets/inter-tight-latin-ext-wght-normal-C5hsmzEi.woff2      81.08 kB
+dist/assets/index-BMsg1xdS.css                                    72.46 kB │ gzip:  14.94 kB
+dist/assets/geo-BaOzu--n.js                                       70.46 kB │ gzip:   4.92 kB
+dist/assets/motion-DbgYI6Kp.js                                   126.91 kB │ gzip:  42.25 kB
+dist/assets/scroll-C8ZfL2iT.js                                   126.95 kB │ gzip:  48.62 kB
+dist/assets/react-_EgKl-GI.js                                    146.01 kB │ gzip:  47.13 kB
+dist/assets/index-CxJIH9gh.js                                    200.67 kB │ gzip:  61.35 kB
+dist/assets/Globe-Bu2DghQk.js                                    891.82 kB │ gzip: 239.09 kB
