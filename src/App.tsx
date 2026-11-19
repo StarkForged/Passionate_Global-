@@ -28,7 +28,11 @@ export default function App() {
     addEventListener('load', refresh);
     document.fonts?.ready.then(refresh);
     // arriving with a section hash (e.g. /#contact from the privacy page): land on it once the layout has settled
-    const hash = /^#[a-z][\w-]*$/i.test(location.hash) ? location.hash : '';
+    // ?from=about etc.: hint left by the passionatestaffing.com redirects (docs/seo/redirect-map.md)
+    const from = new URLSearchParams(location.search).get('from');
+    const FROM: Record<string, string> = { about: '#about', services: '#services', security: '#security', life: '#life', contact: '#contact' };
+    if (from) history.replaceState(null, '', location.pathname + (FROM[from] ?? location.hash));
+    const hash = (from && FROM[from]) || (/^#[a-z][\w-]*$/i.test(location.hash) ? location.hash : '');
     const h = hash ? setTimeout(() => { refresh(); scrollToHash(hash, true); }, 1600) : undefined;
     return () => { clearTimeout(t); clearTimeout(h); removeEventListener('load', refresh); };
   }, []);

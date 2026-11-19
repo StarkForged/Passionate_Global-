@@ -1,0 +1,15 @@
+# passionatestaffing.com URL inventory, collected 2026-11-19 (before any change)
+# No sitemap.xml or robots.txt exists (both 404). Crawled from the homepage, 2 levels, internal links only.
+# Static HTML site on Hostinger (Server: hcdn). Status = HTTP status on 2026-11-19.
+200 https://www.passionatestaffing.com/
+200 https://www.passionatestaffing.com/index.html
+200 https://www.passionatestaffing.com/about-us.html
+200 https://www.passionatestaffing.com/services.html
+200 https://www.passionatestaffing.com/infrastructure.html
+200 https://www.passionatestaffing.com/career.html
+200 https://www.passionatestaffing.com/contact-us.html
+404 https://www.passionatestaffing.com/blog-list-1.html            (linked in the old menu, never existed)
+404 https://www.passionatestaffing.com/jobs-list-1.html            (linked, never existed)
+404 https://www.passionatestaffing.com/company-dashboard-new-job.html (linked, never existed)
+# Assets (css/, js/, images/) are also caught by the catch-all rule.
+# Old contact data on that site (do NOT reuse): info@passionatestaffing.com, a UK tel: link, old social profiles.
